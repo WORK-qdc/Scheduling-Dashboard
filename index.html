@@ -1,1 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduling Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Schedule an Item</h1>
+    <form id="schedule-form" action="/recommend" method="post">
+        <label for="topic">Topic</label>
+        <input type="text" id="topic" name="topic" required>
+
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" required>
+
+        <label for="deliverables">Deliverables</label>
+        <textarea id="deliverables" name="deliverables" rows="4" required></textarea>
+
+        <label for="assigned_employee">Assigned Employee</label>
+        <input type="text" id="assigned_employee" name="assigned_employee" required>
+
+        <label for="recommended_employee">Recommended Employee</label>
+        <input type="text" id="recommended_employee" name="recommended_employee" readonly placeholder="Will be filled by system">
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
 
