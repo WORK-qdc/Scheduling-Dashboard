@@ -115,13 +115,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
     const msalConfig = {
-      auth: {
-        clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
-        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-        redirectUri: window.location.origin + '/'
-      },
-      cache: { cacheLocation: 'localStorage' }
-    };
+  auth: {
+    clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
+    authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+    redirectUri: 'https://work-qdc.github.io/Scheduling-Dashboard/'
+  },
+  cache: { cacheLocation: 'localStorage' }
+};
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
 
     async function signIn() {
