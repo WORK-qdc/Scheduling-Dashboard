@@ -4,33 +4,55 @@
   <meta charset="utf-8" />
   <title>Logout</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-    a { color: #007bff; text-decoration: none; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <p>Signing you out…</p>
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script>
-    // MSAL configuration must match your Azure App Registration
     const msalConfig = {
       auth: {
         clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
         authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
         redirectUri: window.location.origin + '/'
       },
-      cache: { cacheLocation: 'localStorage' }
+      cache: {
+        cacheLocation: 'localStorage',
+        storeAuthStateInCookie: true
+      }
     };
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts && accounts.length > 0) {
-      // Only logout if someone is signed in
-      msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin + '/' });
-    } else {
-      // Already signed out
-      document.body.innerHTML = '<p>You are already signed out.</p>' +
-        '<p><a href="' + window.location.origin + '/">Return to the Scheduling Tool</a></p>';
-    }
+
+    msalInstance.handleRedirectPromise().then(() => {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) {
+        msalInstance.logoutRedirect({
+          postLogoutRedirectUri: window.location.origin + '/'
+        });
+      } else {
+        document.body.innerHTML = `
+          <p>You are already signed out.</p>
+          <p><a href="${window.location.origin}/">Return to the Scheduling Tool</a></p>
+        `;
+      }
+    }).catch(error => {
+      console.error('Logout failed:', error);
+      document.body.innerHTML = `
+        <p>Error during logout.</p>
+        <pre>${error.message}</pre>
+        <p><a href="${window.location.origin}/">Return to the Scheduling Tool</a></p>
+      `;
+    });
   </script>
 </body>
 </html>
