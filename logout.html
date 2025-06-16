@@ -23,7 +23,7 @@
       auth: {
         clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
         authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-        redirectUri: window.location.origin + '/'
+        redirectUri: 'https://work-qdc.github.io/Scheduling-Dashboard/'
       },
       cache: {
         cacheLocation: 'localStorage',
@@ -37,12 +37,12 @@
       const accounts = msalInstance.getAllAccounts();
       if (accounts.length > 0) {
         msalInstance.logoutRedirect({
-          postLogoutRedirectUri: window.location.origin + '/'
+          postLogoutRedirectUri: 'https://work-qdc.github.io/Scheduling-Dashboard/'
         });
       } else {
         document.body.innerHTML = `
           <p>You are already signed out.</p>
-          <p><a href="${window.location.origin}/">Return to the Scheduling Tool</a></p>
+          <p><a href="https://work-qdc.github.io/Scheduling-Dashboard/">Return to the Scheduling Tool</a></p>
         `;
       }
     }).catch(error => {
@@ -50,7 +50,7 @@
       document.body.innerHTML = `
         <p>Error during logout.</p>
         <pre>${error.message}</pre>
-        <p><a href="${window.location.origin}/">Return to the Scheduling Tool</a></p>
+        <p><a href="https://work-qdc.github.io/Scheduling-Dashboard/">Return to the Scheduling Tool</a></p>
       `;
     });
   </script>
