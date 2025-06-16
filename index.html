@@ -146,14 +146,14 @@
     },
     cache: { cacheLocation: "localStorage" }
   };
-  const SP_SITE_ID    = "tcco.sharepoint.com:/sites/SchedulingToolTest";
+  const SP_SITE_ID    = "tcco.sharepoint.com:/sites/SchedulingToolTest:";
   const EMP_LIST_ID   = "SchedulingEmployeeTest";
   const SCHED_LIST_ID = "TestTableScheduling";
 
   // ==== State ====
   let employees = [], entries = [], editingIndex = null;
 
-  // ==== MSAL & Graph Helpers ====
+  // ==== MSAL & Graph Helpers ==== 
   const msalInstance = new msal.PublicClientApplication(msalConfig);
   async function signInIfNeeded() {
     if (!msalInstance.getAllAccounts().length) {
@@ -166,8 +166,7 @@
   }
   const graphClient = token => MicrosoftGraph.Client.init({ authProvider: done => done(null, token) });
 
-  // ==== CRUD Helpers (Employees & Scheduling) ====
-  // Employees
+  // ==== CRUD Helpers (Employees & Scheduling) ==== 
   async function fetchEmployees() {
     const token = await getToken(["Sites.ReadWrite.All"]);
     const client = graphClient(token);
@@ -197,16 +196,12 @@
     await fetchEmployees();
   }
 
-  // Entries
   async function fetchEntries() {
     const token = await getToken(["Sites.ReadWrite.All"]);
     const client = graphClient(token);
     try {
       const res = await client.api(`/sites/${SP_SITE_ID}/lists/${SCHED_LIST_ID}/items?expand=fields`).get();
-      entries = res.value.map(it => ({
-        id: it.id,
-        fields: it.fields
-      }));
+      entries = res.value.map(it => ({ id: it.id, fields: it.fields }));
       renderEntriesTable();
     } catch (e) { console.error(e); }
   }
@@ -229,7 +224,7 @@
     await fetchEntries();
   }
 
-  // ==== Render Functions ====
+  // ==== Render Functions ==== 
   function renderEmployeeTable() {
     const tbody = document.getElementById('employee-table-body'); tbody.innerHTML = '';
     employees.forEach(emp => {
@@ -238,118 +233,4 @@
         <td>${emp.name}</td>
         <td>${emp.email}</td>
         <td>
-          <button class="btn btn-sm btn-outline-secondary edit-emp-btn" data-id="${emp.id}">Edit</button>
-          <button class="btn btn-sm btn-outline-danger del-emp-btn ms-1" data-id="${emp.id}">Delete</button>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    // Attach handlers
-    document.querySelectorAll('.edit-emp-btn').forEach(btn => btn.addEventListener('click', async (e) => {
-      const id = e.target.dataset.id;
-      const emp = employees.find(x=>x.id==id);
-      const newName = prompt('Name', emp.name);
-      const newEmail = prompt('Email', emp.email);
-      if (newName && newEmail) await updateEmployee(id, newName, newEmail);
-    }));
-    document.querySelectorAll('.del-emp-btn').forEach(btn => btn.addEventListener('click', async (e) => {
-      if(confirm('Delete employee?')) await deleteEmployee(e.target.dataset.id);
-    }));
-  }
-
-  function populateEmployeeSelect() {
-    const sel = document.getElementById('new-assigned'); sel.innerHTML = '<option value="">--Select--</option>';
-    employees.forEach(emp => sel.innerHTML += `<option value="${emp.id}">${emp.name}</option>`);
-  }
-
-  function renderEntriesTable() {
-    const tbody = document.getElementById('entries-tbody'); tbody.innerHTML = '';
-    entries.forEach((it, idx) => {
-      const f = it.fields;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td></td>
-        <td>${f.Title||''}</td>
-        <td>${f.Topic||''}</td>
-        <td>${f.Status||''}</td>
-        <td>${f.Start||''}</td>
-        <td>${f.End||''}</td>
-        <td>${f.Location||''}</td>
-        <td><a href="${f.Link}" target="_blank">Link</a></td>
-        <td>${f.Industry||''}</td>
-        <td>${f.Description||''}</td>
-        <td>${f.Deadline||''}</td>
-        <td>${f.Deliverables||''}</td>
-        <td>${f.Type||''}</td>
-        <td>${f.RecommendedEmployee||''}</td>
-        <td>${employees.find(e=>e.id==f.AssignedEmployee)?.name||''}</td>
-        <td>${f.Notes||''}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary edit-entry-btn" data-idx="${idx}">Edit</button>
-          <button class="btn btn-sm btn-outline-danger del-entry-btn ms-1" data-id="${it.id}">Delete</button>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    document.querySelectorAll('.edit-entry-btn').forEach(btn => btn.addEventListener('click', (e) => {
-      const idx = e.target.dataset.idx; const rec = entries[idx].fields;
-      editingIndex = idx;
-      ['Title','Topic','Status','Start','End','Location','Link','Industry','Description','Deadline','Deliverables','Type','RecommendedEmployee','AssignedEmployee','Notes'].forEach(key => {
-        const el = document.getElementById('new-' + key.toLowerCase());
-        if (el) el.value = rec[key] || '';
-      });
-      document.getElementById('add-entry-btn').textContent = 'Update';
-    }));
-    document.querySelectorAll('.del-entry-btn').forEach(btn => btn.addEventListener('click', async (e) => {
-      if (confirm('Delete entry?')) await deleteEntry(e.target.dataset.id);
-    }));
-  }
-
-  // ==== Event Handlers & View Switching ====
-  function initializeEventHandlers() {
-    document.getElementById('add-entry-btn').addEventListener('click', async () => {
-      const data = {};
-      ['title','topic','status','start','end','location','link','industry','desc','deadline','deliver','type','reco','assigned','notes'].forEach(key => {
-        const el = document.getElementById('new-' + key);
-        data[ el.id.replace('new-','').charAt(0).toUpperCase() + el.id.replace('new-','').slice(1) ] = el.value;
-      });
-      if (editingIndex===null) await createEntry(data);
-      else { await updateEntry(entries[editingIndex].id, data); editingIndex = null; document.getElementById('add-entry-btn').textContent = 'Add'; }
-      // clear inputs
-      document.querySelectorAll('tfoot input, tfoot textarea, tfoot select').forEach(i=>i.value='');
-    });
-
-    document.getElementById('edit-employees-btn').addEventListener('click', () => {
-      renderEmployeeTable();
-      new bootstrap.Modal(document.getElementById('employeeModal')).show();
-    });
-    document.getElementById('add-emp-btn').addEventListener('click', async () => {
-      const name = prompt('Employee name');
-      const email = prompt('Employee email');
-      if(name && email) await createEmployee(name, email);
-    });
-
-    // View toggles
-    document.getElementById('calendar-view-btn').addEventListener('click', () => {
-      document.getElementById('list-container').classList.add('d-none');
-      document.getElementById('calendar-container').style.display = 'block';
-      document.getElementById('calendar-view-btn').classList.add('d-none');
-      document.getElementById('list-view-btn').classList.remove('d-none');
-      // TODO: render calendar
-    });
-    document.getElementById('calendar-list-view-btn').addEventListener('click', () => {
-      document.getElementById('calendar-container').style.display = 'none';
-      document.getElementById('list-container').classList.remove('d-none');
-      document.getElementById('calendar-view-btn').classList.remove('d-none');
-      document.getElementById('list-view-btn').classList.add('d-none');
-    });
-  }
-
-  // ==== Init: Auth, Fetch & Bind ====
-  (async () => {
-    await signInIfNeeded();
-    await fetchEmployees();
-    await fetchEntries();
-    initializeEventHandlers();
-  })();
-  </script>
-</body>
-</html>
+          <button class="btn btn-sm btn-outline
