@@ -187,30 +187,36 @@
       }
 
       async function addEntry() {
-        const token = await getToken(['Sites.ReadWrite.All']);
-        const g = client(token);
-        const sid = await getSiteId(g);
-        const fields = {
-          Title: document.getElementById('new-title').value,
-          Topic: document.getElementById('new-topic').value,
-          Status: document.getElementById('new-status').value,
-          StartDate: document.getElementById('new-start').value,
-          EndDate: document.getElementById('new-end').value,
-          Location: document.getElementById('new-location').value,
-          Link: document.getElementById('new-link').value,
-          Industry: document.getElementById('new-industry').value,
-          Description: document.getElementById('new-desc').value,
-          Deadline: document.getElementById('new-deadline').value,
-          Deliverables: document.getElementById('new-deliver').value,
-          Type: document.getElementById('new-type').value,
-          RecoEmp: document.getElementById('new-reco').value,
-          AssignedEmp: document.getElementById('new-assigned').value,
-          Notes: document.getElementById('new-notes').value
-        };
-        await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
-        await fetchEntries();
-      }
+  try {
+    const token = await getToken(['Sites.ReadWrite.All']);
+    const g = client(token);
+    const sid = await getSiteId(g);
 
+    const fields = {
+      Title:                     document.getElementById('new-title').value,
+      Topic:                     document.getElementById('new-topic').value,
+      RegistrationStatus:        document.getElementById('new-status').value,
+      StartDate:                 document.getElementById('new-start').value,
+      EndDate:                   document.getElementById('new-end').value,
+      Location:                  document.getElementById('new-location').value,
+      Link:                      document.getElementById('new-link').value,
+      Industry:                  document.getElementById('new-industry').value,
+      Description:               document.getElementById('new-desc').value,
+      ApplicationDeadline:       document.getElementById('new-deadline').value,
+      Deliverables:              document.getElementById('new-deliver').value,
+      Internal_x002f_External:   document.getElementById('new-type').value,
+      RecommendedEmployee:       document.getElementById('new-reco').value,
+      AssignedEmployee:          document.getElementById('new-assigned').value,
+      Notes:                     document.getElementById('new-notes').value
+    };
+
+    await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
+    await fetchEntries();
+  } catch (err) {
+    console.error('addEntry failed:', err);
+    alert(`Error adding entry:\n${err.message}`);
+  }
+}
       function populateEmployeeSelects() {
         const sel = document.getElementById('new-assigned');
         sel.innerHTML = '<option value="">--Select--</option>';
