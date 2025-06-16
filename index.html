@@ -155,17 +155,29 @@
 
     let EMP_LIST_ID, SCHED_LIST_ID;
     async function initLists() {
-      await signIn();
-      const token = await getToken(['Sites.Read.All']);
-      const g = client(token);
-      const sid = await getSiteId(g);
-      const res = await g.api(`/sites/${sid}/lists`).get();
-      const emp = res.value.find(l => /employee/i.test(l.displayName));
-      const sched = res.value.find(l => /schedule/i.test(l.displayName));
-      if (!emp || !sched) throw new Error('Could not locate both Employee and Schedule lists');
-      EMP_LIST_ID = emp.id;
-      SCHED_LIST_ID = sched.id;
-    }
+  await signIn();
+  const token = await getToken(['Sites.Read.All']);
+  const g = client(token);
+  const sid = await getSiteId(g);
+
+  console.log('🔍 Site ID:', sid);
+  const res = await g.api(`/sites/${sid}/lists`).get();
+  console.log(
+    '📋 Lists found:',
+    res.value.map(l => ({ displayName: l.displayName, id: l.id }))
+  );
+
+  const emp = res.value.find(l => l.displayName === 'SchedulingEmployeeTest');
+  const sched = res.value.find(l => l.displayName === 'TestTableScheduling');
+
+  if (!emp || !sched) {
+    throw new Error('❌ Could not locate both SchedulingEmployeeTest and TestTableScheduling lists');
+  }
+
+  EMP_LIST_ID = emp.id;
+  SCHED_LIST_ID = sched.id;
+}
+
 
     async function fetchEmployees() {
       const token = await getToken(['Sites.Read.All']);
