@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scheduling Tool</n>
+  <title>Scheduling Tool</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -57,13 +57,13 @@
 
     <!-- List Panel -->
     <div id="list-container" class="table-responsive">
-      <!-- ... (existing table markup remains unchanged) ... -->
+      <!-- Existing table markup unchanged -->
     </div>
   </div>
 
   <!-- Manage Employees Modal -->
   <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
-    <!-- ... (modal markup unchanged) ... -->
+    <!-- Modal content unchanged -->
   </div>
 
   <!-- Scripts -->
@@ -71,14 +71,16 @@
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
+    // Debug log to confirm script load
     console.log("Scheduling tool script loaded");
 
-    // MSAL & Graph Configuration
+    // MSAL & Graph configuration with explicit redirectUri
     const msalConfig = {
       auth: {
         clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d837",
         authority: "https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289",
-        redirectUri: window.location.origin
+        // Must exactly match a redirect URI configured in Azure AD
+        redirectUri: "https://work-qdc.github.io/index.html"
       },
       cache: { cacheLocation: "localStorage" }
     };
@@ -91,15 +93,111 @@
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const graphClient = token => MicrosoftGraph.Client.init({ authProvider: done => done(null, token) });
 
-    // Sign-out button handler
+    // Logout handler only on button click
     document.getElementById('logout-btn').onclick = () => {
       msalInstance.logoutRedirect({
-        postLogoutRedirectUri: window.location.origin + '/logout.html'
+        postLogoutRedirectUri: "https://work-qdc.github.io/logout.html"
       });
     };
 
-    // (Include the rest of your existing debug-instrumented code here: signInIfNeeded, getToken,
-    // getSiteId, fetchEmployees, fetchEntries, renderList, renderCalendar, CRUD handlers, modal, view switch, init)
+    // Sign-in helper
+    async function signInIfNeeded() {
+      console.log("signInIfNeeded()");
+      if (!msalInstance.getAllAccounts().length) {
+        console.log("  no account, initiating loginPopup");
+        await msalInstance.loginPopup({
+          scopes: ["User.Read","Calendars.ReadWrite","Sites.Read.All","Sites.ReadWrite.All"]
+        });
+        console.log("  login complete");
+      }
+    }
+
+    // Token acquisition
+    async function getToken(scopes) {
+      console.log("getToken for scopes:", scopes);
+      try {
+        const resp = await msalInstance.acquireTokenSilent({ scopes });
+        console.log("  silent token acquired");
+        return resp.accessToken;
+      } catch {
+        console.log("  silent token failed, falling back to popup");
+        const resp = await msalInstance.acquireTokenPopup({ scopes });
+        console.log("  popup token acquired");
+        return resp.accessToken;
+      }
+    }
+
+    // Get SharePoint site GUID
+    async function getSiteId(client) {
+      const site = await client.api(`/sites/${HOSTNAME}:${SITE_PATH}:`).get();
+      return site.id;
+    }
+
+    // Fetch employees
+    async function fetchEmployees() {
+      console.log("fetchEmployees()");
+      try {
+        await signInIfNeeded();
+        const token = await getToken(["Sites.Read.All"]);
+        const client = graphClient(token);
+        const siteId = await getSiteId(client);
+        console.log("  siteId=", siteId);
+        const res = await client
+          .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`)
+          .expand("fields")
+          .get();
+        employees = res.value.map(i => ({ id: i.id, name: i.fields.Title, email: i.fields.Employeesemail }));
+        populateEmployeeSelects();
+      } catch (e) {
+        console.error("fetchEmployees error", e);
+      }
+    }
+
+    // Fetch entries
+    async function fetchEntries() {
+      console.log("fetchEntries()");
+      try {
+        await signInIfNeeded();
+        const token = await getToken(["Sites.Read.All"]);
+        const client = graphClient(token);
+        const siteId = await getSiteId(client);
+        console.log("  siteId=", siteId);
+        const res = await client
+          .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`)
+          .expand("fields")
+          .get();
+        entries = res.value.map(i => ({
+          id: i.id,
+          title: i.fields.Title,
+          topic: i.fields.Topic,
+          status: i.fields.Status,
+          start: i.fields.Start,
+          end: i.fields.End,
+          location: i.fields.Location,
+          link: i.fields.Link,
+          industry: i.fields.Industry,
+          desc: i.fields.Description,
+          deadline: i.fields.Deadline,
+          deliver: i.fields.Deliverables,
+          type: i.fields.Type,
+          reco: i.fields.RecoEmp,
+          assigned: i.fields.AssignedEmp,
+          notes: i.fields.Notes
+        }));
+        renderList();
+      } catch (e) {
+        console.error("fetchEntries error", e);
+      }
+    }
+
+    // Include your existing renderList, renderCalendar, CRUD handlers, modal, view-switch code here unchanged
+    // ...
+
+    // Initialize data
+    (async () => {
+      await fetchEmployees();
+      await fetchEntries();
+    })();
   </script>
 
 </body>
@@ -117,16 +215,15 @@
   <p>Signing you out…</p>
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script>
-    const msalConfig = {
+    const msalLogoutConfig = {
       auth: {
-        clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d837",
+        clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d8337",
         authority: "https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289",
-        redirectUri: window.location.origin
+        redirectUri: "https://work-qdc.github.io/index.html"
       },
       cache: { cacheLocation: "localStorage" }
     };
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
-    msalInstance.logoutRedirect();
+    const msalInstanceLogout = new msal.PublicClientApplication(msalLogoutConfig);
+    msalInstanceLogout.logoutRedirect();
   </script>
-</body>
 </html>
