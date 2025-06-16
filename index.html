@@ -1,3 +1,28 @@
+<!-- signout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Logout</title>
+</head>
+<body>
+  <p>Signing out…</p>
+  <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
+  <script>
+    const lc = {
+      auth: {
+        clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
+        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+        redirectUri: window.location.origin + window.location.pathname
+      }
+    };
+    new msal.PublicClientApplication(lc).logoutRedirect();
+  </script>
+</body>
+</html>
+
+
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,276 +164,4 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
-
-  <script>
-    // ----- MSAL + Graph setup -----
-    const msalConfig = {
-      auth: {
-        clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
-        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-        redirectUri: window.location.origin + window.location.pathname
-      },
-      cache: { cacheLocation: 'localStorage' }
-    };
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-    async function signIn() {
-      if (!msalInstance.getAllAccounts().length) {
-        await msalInstance.loginPopup({
-          scopes: ['User.Read','Calendars.ReadWrite','Sites.Read.All','Sites.ReadWrite.All']
-        });
-      }
-    }
-
-    async function getToken(scopes) {
-      try {
-        const resp = await msalInstance.acquireTokenSilent({ scopes });
-        return resp.accessToken;
-      } catch {
-        const resp = await msalInstance.acquireTokenPopup({ scopes });
-        return resp.accessToken;
-      }
-    }
-
-    function client(token) {
-      return MicrosoftGraph.Client.init({
-        authProvider: done => done(null, token)
-      });
-    }
-
-    async function getSiteId(graphClient) {
-      const site = await graphClient.api(`/sites/tcco.sharepoint.com:/sites/SchedulingToolTest:/`).get();
-      return site.id;
-    }
-
-    // ----- Dynamic List Discovery -----
-    let EMP_LIST_NAME, SCHED_LIST_NAME;
-    async function initLists() {
-      const token = await getToken(['Sites.Read.All']);
-      const g = client(token);
-      const sid = await getSiteId(g);
-      const res = await g.api(`/sites/${sid}/lists`).get();
-      const lists = res.value;
-      const emp = lists.find(l => /employee/i.test(l.displayName));
-      if (!emp) throw new Error('Employee list not found');
-      const sched = lists.find(l => /schedule/i.test(l.displayName));
-      if (!sched) throw new Error('Scheduling list not found');
-      EMP_LIST_NAME = emp.name;
-      SCHED_LIST_NAME = sched.name;
-    }
-
-    // ----- Fetch & Render -----
-    async function fetchEmployees() {
-      try {
-        await signIn();
-        const token = await getToken(['Sites.Read.All']);
-        const g = client(token);
-        const sid = await getSiteId(g);
-        const r = await g.api(`/sites/${sid}/lists/${EMP_LIST_NAME}/items`).expand('fields').get();
-        window.employees = r.value.map(i => ({
-          id: i.id,
-          name: i.fields.Title,
-          email: i.fields.Employeesemail
-        }));
-        populateEmployeeSelects();
-        renderEmployeeTable();
-      } catch (err) {
-        console.error('fetchEmployees failed:', err);
-        alert(`fetchEmployees failed:\n${err.message}`);
-        throw err;
-      }
-    }
-
-    async function fetchEntries() {
-      try {
-        await signIn();
-        const token = await getToken(['Sites.Read.All']);
-        const g = client(token);
-        const sid = await getSiteId(g);
-        const r = await g.api(`/sites/${sid}/lists/${SCHED_LIST_NAME}/items`).expand('fields').get();
-        window.entries = r.value.map(i => ({
-          id: i.id,
-          title: i.fields.Title,
-          topic: i.fields.Topic,
-          status: i.fields.Status,
-          start: i.fields.Start,
-          end: i.fields.End,
-          location: i.fields.Location,
-          link: i.fields.Link,
-          industry: i.fields.Industry,
-          desc: i.fields.Description,
-          deadline: i.fields.Deadline,
-          deliver: i.fields.Deliverables,
-          type: i.fields.Type,
-          reco: i.fields.RecoEmp,
-          assigned: i.fields.AssignedEmp,
-          notes: i.fields.Notes
-        }));
-        renderList();
-      } catch (err) {
-        console.error('fetchEntries failed:', err);
-        alert(`fetchEntries failed:\n${err.message}`);
-        throw err;
-      }
-    }
-
-    // ----- UI Helpers -----
-    function populateEmployeeSelects() {
-      const sel = document.getElementById('new-assigned');
-      sel.innerHTML = '<option value="">--Select--</option>';
-      window.employees.forEach(e => {
-        const o = document.createElement('option');
-        o.value = e.email;
-        o.textContent = e.name;
-        sel.appendChild(o);
-      });
-    }
-
-    function renderEmployeeTable() {
-      const body = document.getElementById('employee-table-body');
-      body.innerHTML = '';
-      window.employees.forEach(e => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${e.name}</td>
-          <td>${e.email}</td>
-          <td>
-            <button type="button" class="btn btn-sm btn-outline-danger" data-id="${e.id}" data-action="del-emp">
-              Delete
-            </button>
-          </td>`;
-        tr.querySelector('[data-action="del-emp"]').addEventListener('click', async () => {
-          try {
-            const token = await getToken(['Sites.ReadWrite.All']);
-            const g = client(token);
-            const sid = await getSiteId(g);
-            await g.api(`/sites/${sid}/lists/${EMP_LIST_NAME}/items/${e.id}`).delete();
-            await fetchEmployees();
-          } catch(err) {
-            console.error('deleteEmployee failed:', err);
-            alert(`Error deleting employee:\n${err.message}`);
-          }
-        });
-        body.appendChild(tr);
-      });
-    }
-
-    function renderList() {
-      const tbody = document.getElementById('entries-tbody');
-      tbody.innerHTML = '';
-      window.entries.forEach((e, idx) => {
-        const emp = window.employees.find(x => x.email === e.assigned) || {};
-        const dn = emp.name || e.assigned || '';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><button type="button" class="btn btn-link p-0" data-idx="${idx}" data-action="menu">⋮</button></td>
-          <td>${e.title}</td><td>${e.topic}</td><td>${e.status}</td>
-          <td>${e.start}</td><td>${e.end}</td><td>${e.location}</td>
-          <td><a href="${e.link}" target="_blank">link</a></td>
-          <td>${e.industry}</td><td>${e.desc}</td><td>${e.deadline}</td>
-          <td>${e.deliver}</td><td>${e.type}</td><td>${e.reco}</td>
-          <td>${dn}</td><td>${e.notes}</td><td></td>`;
-        tr.querySelector('[data-action="menu"]').addEventListener('click', () => {
-          alert(`Row ${idx+1} menu clicked`);
-        });
-        tbody.appendChild(tr);
-      });
-    }
-
-    // ----- Actions -----
-    async function addEmployee() {
-      const name = prompt('Employee Name:');
-      const email = prompt('Employee Email:');
-      if (!name || !email) return;
-      try {
-        const token = await getToken(['Sites.ReadWrite.All']);
-        const g = client(token);
-        const sid = await getSiteId(g);
-        await g.api(`/sites/${sid}/lists/${EMP_LIST_NAME}/items`).post({
-          fields: { Title: name, Employeesemail: email }
-        });
-        await fetchEmployees();
-        bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
-      } catch(err) {
-        console.error('addEmployee failed:', err);
-        alert(`Error adding employee:\n${err.message}`);
-      }
-    }
-
-    async function addEntry() {
-      const fields = {
-        Title: document.getElementById('new-title').value,
-        Topic: document.getElementById('new-topic').value,
-        Status: document.getElementById('new-status').value,
-        Start: document.getElementById('new-start').value,
-        End: document.getElementById('new-end').value,
-        Location: document.getElementById('new-location').value,
-        Link: document.getElementById('new-link').value,
-        Industry: document.getElementById('new-industry').value,
-        Description: document.getElementById('new-desc').value,
-        Deadline: document.getElementById('new-deadline').value,
-        Deliverables: document.getElementById('new-deliver').value,
-        Type: document.getElementById('new-type').value,
-        RecoEmp: document.getElementById('new-reco').value,
-        AssignedEmp: document.getElementById('new-assigned').value,
-        Notes: document.getElementById('new-notes').value
-      };
-      try {
-        const token = await getToken(['Sites.ReadWrite.All']);
-        const g = client(token);
-        const sid = await getSiteId(g);
-        await g.api(`/sites/${sid}/lists/${SCHED_LIST_NAME}/items`).post({ fields });
-        await fetchEntries();
-        document.querySelectorAll('tfoot input, tfoot textarea, tfoot select').forEach(el => el.value = '');
-      } catch(err) {
-        console.error('addEntry failed:', err);
-        alert(`Error adding entry:\n${err.message}`);
-      }
-    }
-
-    // ----- Initialize on load -----
-    document.addEventListener('DOMContentLoaded', () => {
-      // Wire up UI buttons
-      document.getElementById('logout-btn').addEventListener('click', () =>
-        msalInstance.logoutRedirect({
-          postLogoutRedirectUri: window.location.origin + window.location.pathname + 'logout.html'
-        })
-      );
-      document.getElementById('calendar-view-btn').addEventListener('click', () => {
-        document.getElementById('calendar-container').style.display = 'block';
-        document.getElementById('list-container').style.display = 'none';
-        document.getElementById('calendar-view-btn').classList.add('d-none');
-        document.getElementById('list-view-btn').classList.remove('d-none');
-      });
-      document.getElementById('list-view-btn').addEventListener('click', () => {
-        document.getElementById('calendar-container').style.display = 'none';
-        document.getElementById('list-container').style.display = 'block';
-        document.getElementById('calendar-view-btn').classList.remove('d-none');
-        document.getElementById('list-view-btn').classList.add('d-none');
-      });
-      document.getElementById('calendar-list-view-btn').addEventListener('click', () =>
-        document.getElementById('list-view-btn').click()
-      );
-      document.getElementById('edit-employees-btn').addEventListener('click', () =>
-        new bootstrap.Modal(document.getElementById('employeeModal')).show()
-      );
-      document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
-      document.getElementById('add-entry-btn').addEventListener('click', addEntry);
-
-      // Discover your lists, then fetch & render
-      (async () => {
-        try {
-          await initLists();
-          await fetchEmployees();
-          await fetchEntries();
-        } catch(err) {
-          console.error('Initialization error:', err);
-          alert(`Initialization error:\n${err.message}`);
-        }
-      })();
-    });
-  </script>
-</body>
-</html>
+  <script src="https://alcd...
