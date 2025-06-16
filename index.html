@@ -111,7 +111,7 @@
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
-    console.log('loaded');
+    // MSAL & Graph setup
     const msalConfig = {
       auth: {
         clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
@@ -123,30 +123,47 @@
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const HOST = 'tcco.sharepoint.com',
           PATH = '/sites/SchedulingToolTest',
-          EMP = 'SchedulingEmployeeTest',
-          SCHED = 'TestTableScheduling';
+          EMP  = 'SchedulingEmployeeTest',
+          SCHED= 'TestTableScheduling';
 
     document.getElementById('logout-btn').onclick = () =>
       msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin + window.location.pathname + 'logout.html' });
 
     async function signIn() {
-      if (!msalInstance.getAllAccounts().length) await msalInstance.loginPopup({ scopes: ['User.Read','Calendars.ReadWrite','Sites.Read.All','Sites.ReadWrite.All'] });
+      if (!msalInstance.getAllAccounts().length) {
+        await msalInstance.loginPopup({
+          scopes: ['User.Read','Calendars.ReadWrite','Sites.Read.All','Sites.ReadWrite.All']
+        });
+      }
     }
     async function getToken(scopes) {
-      try { return (await msalInstance.acquireTokenSilent({ scopes })).accessToken; }
-      catch { return (await msalInstance.acquireTokenPopup({ scopes })).accessToken; }
+      try {
+        return (await msalInstance.acquireTokenSilent({ scopes })).accessToken;
+      } catch {
+        return (await msalInstance.acquireTokenPopup({ scopes })).accessToken;
+      }
     }
-    function client(token) { return MicrosoftGraph.Client.init({ authProvider: (done) => done(null, token) }); }
+    function client(token) {
+      return MicrosoftGraph.Client.init({ authProvider: done => done(null, token) });
+    }
+    async function getSiteId(c) {
+      return (await c.api(`/sites/${HOST}:${PATH}:/`).get()).id;
+    }
 
-    async function getSiteId(c) { return (await c.api(`/sites/${HOST}:${PATH}:/`).get()).id; }
-
+    // -- READ OPERATIONS --
     async function fetchEmployees() {
       await signIn();
       const t = await getToken(['Sites.Read.All']);
       const c = client(t);
       const sid = await getSiteId(c);
-      const r = await c.api(`/sites/${sid}/lists/${EMP}/items`).expand('fields').get();
-      window.employees = r.value.map(i => ({ id: i.id, name: i.fields.Title, email: i.fields.Employeesemail }));
+      const r = await c.api(`/sites/${sid}/lists/${EMP}/items`)
+                     .expand('fields')
+                     .get();
+      window.employees = r.value.map(i => ({
+        id: i.id,
+        name: i.fields.Title,
+        email: i.fields.Employeesemail
+      }));
       populateEmployeeSelects();
       renderEmployeeTable();
     }
@@ -156,60 +173,201 @@
       const t = await getToken(['Sites.Read.All']);
       const c = client(t);
       const sid = await getSiteId(c);
-      const r = await c.api(`/sites/${sid}/lists/${SCHED}/items`).expand('fields').get();
-      window.entries = r.value.map(i => ({ id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.Status, start: i.fields.Start, end: i.fields.End, location: i.fields.Location, link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description, deadline: i.fields.Deadline, deliver: i.fields.Deliverables, type: i.fields.Type, reco: i.fields.RecoEmp, assigned: i.fields.AssignedEmp, notes: i.fields.Notes }));
+      const r = await c.api(`/sites/${sid}/lists/${SCHED}/items`)
+                     .expand('fields')
+                     .get();
+      window.entries = r.value.map(i => ({
+        id: i.id,
+        title: i.fields.Title,
+        topic: i.fields.Topic,
+        status: i.fields.Status,
+        start: i.fields.Start,
+        end: i.fields.End,
+        location: i.fields.Location,
+        link: i.fields.Link,
+        industry: i.fields.Industry,
+        desc: i.fields.Description,
+        deadline: i.fields.Deadline,
+        deliver: i.fields.Deliverables,
+        type: i.fields.Type,
+        reco: i.fields.RecoEmp,
+        assigned: i.fields.AssignedEmp,
+        notes: i.fields.Notes
+      }));
       renderList();
     }
 
-    // Globals
-    let editingIndex = null;
-    const tbody = document.getElementById('entries-tbody');
-    const newAssigned = document.getElementById('new-assigned');
-    const addBtn = document.getElementById('add-entry-btn');
-
-    // Populate selects
+    // -- RENDER HELPERS --
     function populateEmployeeSelects() {
       newAssigned.innerHTML = '<option value="">--Select--</option>';
-      employees.forEach(e => { const o = document.createElement('option'); o.value = e.email; o.textContent = e.name; newAssigned.appendChild(o); });
+      window.employees.forEach(e => {
+        const o = document.createElement('option');
+        o.value = e.email;
+        o.textContent = e.name;
+        newAssigned.appendChild(o);
+      });
     }
 
-    // Render employees in modal
     function renderEmployeeTable() {
       const body = document.getElementById('employee-table-body');
       body.innerHTML = '';
-      employees.forEach(e => {
+      window.employees.forEach(e => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${e.name}</td>
           <td>${e.email}</td>
-          <td><button type="button" class="btn btn-sm btn-outline-danger" data-id="${e.id}" data-action="del-emp">Delete</button></td>
-        `;
+          <td>
+            <button type="button" class="btn btn-sm btn-outline-danger" 
+                    data-id="${e.id}" data-action="del-emp">Delete</button>
+          </td>`;
         body.appendChild(tr);
       });
     }
 
-    // Render main list
+    const tbody = document.getElementById('entries-tbody');
+    let editingId = null;
+
     function renderList() {
       tbody.innerHTML = '';
-      entries.forEach((e, idx) => {
-        const emp = employees.find(x => x.email === e.assigned) || {};
+      window.entries.forEach(e => {
+        const emp = window.employees.find(x => x.email === e.assigned) || {};
         const dn = emp.name || e.assigned;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><button type="button" class="btn btn-link p-0" data-idx="${idx}" data-action="menu">⋮</button></td>
-          <td>${e.title}</td>
-          <td>${e.topic}</td>
-          <td>${e.status}</td>
-          <td>${e.start}</td>
-          <td>${e.end}</td>
-          <td>${e.location}</td>
+          <td><button class="btn btn-link p-0" data-id="${e.id}" data-action="menu">⋮</button></td>
+          <td>${e.title}</td><td>${e.topic}</td><td>${e.status}</td>
+          <td>${e.start}</td><td>${e.end}</td><td>${e.location}</td>
           <td><a href="${e.link}" target="_blank">link</a></td>
-          <td>${e.industry}</td>
-          <td>${e.desc}</td>
-          <td>${e.deadline}</td>
-          <td>${e.deliver}</td>
-          <td>${e.type}</td>
-          <td>${e.reco}</td>
-          <td>${dn}</td>
-          <td>${e.notes}</td>
-          <td></td>
+          <td>${e.industry}</td><td>${e.desc}</td><td>${e.deadline}</td>
+          <td>${e.deliver}</td><td>${e.type}</td><td>${e.reco}</td>
+          <td>${dn}</td><td>${e.notes}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" 
+                    data-id="${e.id}" data-action="edit-entry">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    data-id="${e.id}" data-action="del-entry">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // -- EVENT HANDLERS --
+    // Add or Save entry
+    document.getElementById('add-entry-btn').onclick = async () => {
+      await signIn();
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const graph = client(token);
+      const sid = await getSiteId(graph);
+
+      const payloadFields = {
+        Title:      document.getElementById('new-title').value,
+        Topic:      document.getElementById('new-topic').value,
+        Status:     document.getElementById('new-status').value,
+        Start:      document.getElementById('new-start').value,
+        End:        document.getElementById('new-end').value,
+        Location:   document.getElementById('new-location').value,
+        Link:       document.getElementById('new-link').value,
+        Industry:   document.getElementById('new-industry').value,
+        Description:document.getElementById('new-desc').value,
+        Deadline:   document.getElementById('new-deadline').value,
+        Deliverables:document.getElementById('new-deliver').value,
+        Type:       document.getElementById('new-type').value,
+        RecoEmp:    document.getElementById('new-reco').value,
+        AssignedEmp:document.getElementById('new-assigned').value,
+        Notes:      document.getElementById('new-notes').value
+      };
+
+      if (!editingId) {
+        // CREATE
+        await graph
+          .api(`/sites/${sid}/lists/${SCHED}/items`)
+          .post({ fields: payloadFields });
+      } else {
+        // UPDATE
+        await graph
+          .api(`/sites/${sid}/lists/${SCHED}/items/${editingId}/fields`)
+          .patch(payloadFields);
+        editingId = null;
+        document.getElementById('add-entry-btn').textContent = 'Add';
+      }
+
+      // reset inputs & reload
+      document.querySelector('tfoot input, tfoot textarea, tfoot select').forEach(i => i.value = '');
+      await fetchEntries();
+    };
+
+    // Delegate table clicks
+    tbody.addEventListener('click', async e => {
+      const action = e.target.dataset.action;
+      const id     = e.target.dataset.id;
+      if (!action) return;
+
+      await signIn();
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const graph = client(token);
+      const sid   = await getSiteId(graph);
+
+      if (action === 'del-entry') {
+        await graph
+          .api(`/sites/${sid}/lists/${SCHED}/items/${id}`)
+          .delete();
+        await fetchEntries();
+
+      } else if (action === 'edit-entry') {
+        // populate inputs for editing
+        const entry = window.entries.find(x => x.id == id);
+        ['title','topic','status','start','end','location','link','industry','desc','deadline','deliver','type','reco','assigned','notes']
+          .forEach(f => document.getElementById(`new-${f}`).value = entry[f]);
+        editingId = id;
+        document.getElementById('add-entry-btn').textContent = 'Save';
+      }
+    });
+
+    // Manage Employees modal
+    document.getElementById('edit-employees-btn').onclick = () => {
+      new bootstrap.Modal(document.getElementById('employeeModal')).show();
+    };
+
+    // Add Employee
+    document.getElementById('add-emp-btn').onclick = async () => {
+      const name  = prompt('Employee name:');
+      const email = prompt('Employee email:');
+      if (!name || !email) return;
+
+      await signIn();
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const graph = client(token);
+      const sid   = await getSiteId(graph);
+
+      await graph
+        .api(`/sites/${sid}/lists/${EMP}/items`)
+        .post({ fields: { Title: name, Employeesemail: email } });
+
+      await fetchEmployees();
+    };
+
+    // Delete Employee
+    document.getElementById('employee-table-body').addEventListener('click', async e => {
+      if (e.target.dataset.action !== 'del-emp') return;
+      const id = e.target.dataset.id;
+
+      await signIn();
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const graph = client(token);
+      const sid   = await getSiteId(graph);
+
+      await graph
+        .api(`/sites/${sid}/lists/${EMP}/items/${id}`)
+        .delete();
+
+      await fetchEmployees();
+    });
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', async () => {
+      await fetchEmployees();
+      await fetchEntries();
+    });
+  </script>
+</body>
+</html>
