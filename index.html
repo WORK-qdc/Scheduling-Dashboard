@@ -135,7 +135,7 @@
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
-    console.log("🚀 Scheduling tool script loaded");
+    console.log("Scheduling tool script loaded");
 
     // Configuration
     const msalConfig = {
@@ -146,163 +146,268 @@
       },
       cache: { cacheLocation: "localStorage" }
     };
-    const HOSTNAME    = "tcco.sharepoint.com";
-    const SITE_PATH   = "/sites/SchedulingToolTest";
+    const HOSTNAME      = "tcco.sharepoint.com";
+    const SITE_PATH     = "/sites/SchedulingToolTest";
     const EMP_LIST_ID   = "SchedulingEmployeeTest";
     const SCHED_LIST_ID = "TestTableScheduling";
 
-    // State
-    let employees = [];
-    let entries = [];
-    let editingIndex = null;
+    let employees = [], entries = [], editingIndex = null;
 
-    // MSAL & Graph
+    // MSAL & Graph setup
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     async function signInIfNeeded() {
+      console.log("signInIfNeeded()");
       if (!msalInstance.getAllAccounts().length) {
+        console.log("  no account, calling loginPopup");
         await msalInstance.loginPopup({
-          scopes: [
-            "User.Read",
-            "Calendars.ReadWrite",
-            "Sites.Read.All",
-            "Sites.ReadWrite.All"
-          ]
+          scopes: ["User.Read","Calendars.ReadWrite","Sites.Read.All","Sites.ReadWrite.All"]
         });
+        console.log("  loginPopup complete");
+      } else {
+        console.log("  already signed in");
       }
     }
     async function getToken(scopes) {
+      console.log("getToken for scopes:", scopes);
       try {
         const resp = await msalInstance.acquireTokenSilent({ scopes });
+        console.log("  silent token acquired");
         return resp.accessToken;
-      } catch {
+      } catch (err) {
+        console.warn("  silent token failed, falling back to popup", err);
         const resp = await msalInstance.acquireTokenPopup({ scopes });
+        console.log("  popup token acquired");
         return resp.accessToken;
       }
     }
     const graphClient = token =>
       MicrosoftGraph.Client.init({ authProvider: done => done(null, token) });
 
-    // Helper: get the site GUID
+    // Get SharePoint site GUID
     async function getSiteId(client) {
-      const site = await client
-        .api(`/sites/${HOSTNAME}:${SITE_PATH}:`)
-        .get();
-      return site.id;
+      try {
+        console.log("getSiteId(): GET /sites/" + HOSTNAME + ":" + SITE_PATH + ":");
+        const site = await client.api(`/sites/${HOSTNAME}:${SITE_PATH}:`).get();
+        console.log("  site ID =", site.id);
+        return site.id;
+      } catch (err) {
+        console.error("getSiteId failed:", err);
+        throw err;
+      }
     }
 
     // Employee CRUD
     async function fetchEmployees() {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.Read.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      const res = await client
-        .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`)
-        .expand("fields")
-        .get();
-      employees = res.value.map(item => ({
-        id: item.id,
-        name: item.fields.Title,
-        email: item.fields.Employeesemail
-      }));
-      populateEmployeeSelects();
-    }
-    async function createEmployee(name, email) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`)
-        .post({ fields: { Title: name, Employeesemail: email } });
-      await fetchEmployees();
-    }
-    async function updateEmployee(id, name, email) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items/${id}/fields`)
-        .patch({ Title: name, Employeesemail: email });
-      await fetchEmployees();
-    }
-    async function deleteEmployee(id) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items/${id}`)
-        .delete();
-      await fetchEmployees();
+      console.log("fetchEmployees()");
+      try {
+        await signInIfNeeded();
+        const token = await getToken(["Sites.Read.All"]);
+        const client = graphClient(token);
+        const siteId = await getSiteId(client);
+        console.log("  fetching employees from site", siteId);
+        const res = await client
+          .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`)
+          .expand("fields")
+          .get();
+        console.log("  employees response", res);
+        employees = res.value.map(item => ({
+          id: item.id,
+          name: item.fields.Title,
+          email: item.fields.Employeesemail
+        }));
+        populateEmployeeSelects();
+      } catch (err) {
+        console.error("fetchEmployees error:", err);
+        alert("Error fetching employees—see console for details.");
+      }
     }
 
     // Scheduling CRUD
     async function fetchEntries() {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.Read.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      const res = await client
-        .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`)
-        .expand("fields")
-        .get();
-      entries = res.value.map(item => ({
-        id:       item.id,
-        title:    item.fields.Title,
-        topic:    item.fields.Topic,
-        status:   item.fields.Status,
-        start:    item.fields.Start,
-        end:      item.fields.End,
-        location: item.fields.Location,
-        link:     item.fields.Link,
-        industry: item.fields.Industry,
-        desc:     item.fields.Description,
-        deadline: item.fields.Deadline,
-        deliver:  item.fields.Deliverables,
-        type:     item.fields.Type,
-        reco:     item.fields.RecoEmp,
-        assigned: item.fields.AssignedEmp,
-        notes:    item.fields.Notes
-      }));
-      renderList();
-    }
-    async function createEntry(e) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`)
-        .post({ fields: e });
-      await fetchEntries();
-    }
-    async function updateEntry(id, e) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items/${id}/fields`)
-        .patch(e);
-      await fetchEntries();
-    }
-    async function deleteEntry(id) {
-      await signInIfNeeded();
-      const token = await getToken(["Sites.ReadWrite.All"]);
-      const client = graphClient(token);
-      const siteId = await getSiteId(client);
-      await client
-        .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items/${id}`)
-        .delete();
-      await fetchEntries();
+      console.log("fetchEntries()");
+      try {
+        await signInIfNeeded();
+        const token = await getToken(["Sites.Read.All"]);
+        const client = graphClient(token);
+        const siteId = await getSiteId(client);
+        console.log("  fetching entries from site", siteId);
+        const res = await client
+          .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`)
+          .expand("fields")
+          .get();
+        console.log("  entries response", res);
+        entries = res.value.map(item => ({
+          id:       item.id,
+          title:    item.fields.Title,
+          topic:    item.fields.Topic,
+          status:   item.fields.Status,
+          start:    item.fields.Start,
+          end:      item.fields.End,
+          location: item.fields.Location,
+          link:     item.fields.Link,
+          industry: item.fields.Industry,
+          desc:     item.fields.Description,
+          deadline: item.fields.Deadline,
+          deliver:  item.fields.Deliverables,
+          type:     item.fields.Type,
+          reco:     item.fields.RecoEmp,
+          assigned: item.fields.AssignedEmp,
+          notes:    item.fields.Notes
+        }));
+        renderList();
+      } catch (err) {
+        console.error("fetchEntries error:", err);
+        alert("Error fetching entries—see console for details.");
+      }
     }
 
-    // DOM & render (unchanged) …
-    // [populateEmployeeSelects, renderList, renderCalendar, add/update click handler,
-    //  modal code, view switching, init fetches… ]
-    // (copy your existing implementations here without change)
+    // DOM bindings & rendering (unchanged)
+    const tbody = document.getElementById('entries-tbody');
+    const newAssigned = document.getElementById('new-assigned');
+    const addBtn = document.getElementById('add-entry-btn');
+
+    function populateEmployeeSelects() {
+      newAssigned.innerHTML = '<option value="">--Select--</option>';
+      employees.forEach(emp => {
+        const o = document.createElement('option');
+        o.value = emp.email;
+        o.textContent = emp.name;
+        newAssigned.appendChild(o);
+      });
+    }
+
+    function renderList() {
+      console.log("renderList()");
+      tbody.innerHTML = '';
+      entries.forEach((e, idx) => {
+        const emp = employees.find(x => x.email === e.assigned) || {};
+        const displayName = emp.name || e.assigned;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center">
+            <div class="dropdown">
+              <button class="btn btn-link text-secondary p-0" type="button" data-bs-toggle="dropdown">⋮</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item edit-btn" href="#">Edit</a></li>
+                <li><a class="dropdown-item delete-btn" href="#">Delete</a></li>
+              </ul>
+            </div>
+          </td>
+          <td>${e.title}</td><td>${e.topic}</td><td>${e.status}</td>
+          <td>${e.start}</td><td>${e.end}</td>
+          <td>${e.location}</td>
+          <td><a href="${e.link}" target="_blank">${e.link}</a></td>
+          <td>${e.industry}</td><td>${e.desc}</td>
+          <td>${e.deadline}</td><td>${e.deliver}</td>
+          <td>${e.type}</td><td>${e.reco}</td>
+          <td>${displayName}</td><td>${e.notes}</td><td></td>
+        `;
+        tr.querySelector('.delete-btn').onclick = ev => {
+          ev.preventDefault();
+          console.log("deleteEntry id=", e.id);
+          deleteEntry(e.id);
+        };
+        tr.querySelector('.edit-btn').onclick = ev => {
+          ev.preventDefault();
+          console.log("editEntry idx=", idx);
+          editingIndex = idx;
+          ['title','topic','status','start','end','location','link','industry','desc','deadline','deliver','notes'].forEach(f => {
+            document.getElementById(`new-${f}`).value = e[f];
+          });
+          document.getElementById('new-type').value = e.type;
+          document.getElementById('new-reco').value = e.reco;
+          newAssigned.value = e.assigned;
+          addBtn.textContent = 'Update';
+        };
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderCalendar() {
+      console.log("renderCalendar()");
+      const today = new Date();
+      const y = today.getFullYear(), m = today.getMonth();
+      const firstDay = new Date(y, m, 1).getDay(), daysInMon = new Date(y, m+1, 0).getDate();
+      let html = '<table class="table table-bordered mb-0"><thead><tr>' +
+        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<th>${d}</th>`).join('') +
+        '</tr></thead><tbody><tr>';
+      for(let i=0;i<firstDay;i++) html += '<td></td>';
+      for(let d=1;d<=daysInMon;d++){
+        const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const evs = entries.filter(e=>e.start<=ds&&ds<=e.end);
+        html += `<td><strong>${d}</strong>`;
+        evs.forEach(ev=> html += `<div><a href="#" data-id="${entries.indexOf(ev)}" class="link-primary">${ev.title}</a></div>`);
+        html += '</td>';
+        if((d+firstDay)%7===0 && d<daysInMon) html+='</tr><tr>';
+      }
+      html += '</tr></tbody></table>';
+      document.getElementById('calendar-table-wrapper').innerHTML = html;
+    }
+
+    // Add/Update handler (you can add logs inside create/update blocks if desired)
+    addBtn.onclick = () => {
+      console.log("addBtn clicked");
+      // ... your existing create/update & invite logic ...
+    };
+
+    // Employee modal & manage handlers
+    const empModal = new bootstrap.Modal(document.getElementById('employeeModal'));
+    document.getElementById('edit-employees-btn').onclick = () => {
+      console.log("Manage Employees clicked");
+      renderEmployeeTable();
+      empModal.show();
+    };
+    document.getElementById('add-emp-btn').onclick = async () => {
+      console.log("add-emp-btn clicked");
+      // ... your existing createEmployee prompt logic ...
+    };
+    function renderEmployeeTable() {
+      console.log("renderEmployeeTable()");
+      const body = document.getElementById('employee-table-body');
+      body.innerHTML = '';
+      employees.forEach(emp => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${emp.name}</td><td>${emp.email}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-secondary edit-emp-btn">Edit</button>
+            <button class="btn btn-sm btn-outline-danger delete-emp-btn ms-1">Delete</button>
+          </td>`;
+        tr.querySelector('.edit-emp-btn').onclick = async () => {
+          console.log("editEmployee id=", emp.id);
+          // ... your existing updateEmployee prompt logic ...
+        };
+        tr.querySelector('.delete-emp-btn').onclick = async () => {
+          console.log("deleteEmployee id=", emp.id);
+          // ... your existing deleteEmployee logic ...
+        };
+        body.appendChild(tr);
+      });
+    }
+
+    // View switching
+    document.getElementById('calendar-view-btn').onclick = () => {
+      console.log("calendar-view-btn clicked");
+      renderCalendar();
+      document.getElementById('list-container').style.display = 'none';
+      document.getElementById('calendar-container').style.display = 'block';
+      document.getElementById('calendar-view-btn').classList.add('d-none');
+      document.getElementById('list-view-btn').classList.remove('d-none');
+    };
+    document.getElementById('list-view-btn').onclick =
+    document.getElementById('calendar-list-view-btn').onclick = () => {
+      console.log("back to list clicked");
+      document.getElementById('calendar-container').style.display = 'none';
+      document.getElementById('list-container').style.display = 'block';
+      document.getElementById('list-view-btn').classList.add('d-none');
+      document.getElementById('calendar-view-btn').classList.remove('d-none');
+    };
+
+    // Initialize on load
+    (async () => {
+      console.log("Initializing fetches…");
+      try { await fetchEmployees(); } catch (e) { console.error("Init fetchEmployees failed:", e); }
+      try { await fetchEntries();   } catch (e) { console.error("Init fetchEntries failed:", e); }
+    })();
   </script>
 </body>
 </html>
