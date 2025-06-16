@@ -88,11 +88,23 @@
   </div>
 
   <!-- Employees Modal -->
-  <div class="modal fade" id="employeeModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header">
-    <h5 class="modal-title">Manage Employees</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
-    <button id="add-emp-btn" class="btn btn-sm btn-primary mb-3">Add Employee</button>
-    <table class="table table-bordered"><thead><tr><th>Name</th><th>Email</th><th>Actions</th></tr></thead><tbody id="employee-table-body"></tbody></table>
-  </div></div></div></div>
+  <div class="modal fade" id="employeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Manage Employees</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <button id="add-emp-btn" class="btn btn-sm btn-primary mb-3">Add Employee</button>
+          <table class="table table-bordered">
+            <thead><tr><th>Name</th><th>Email</th><th>Actions</th></tr></thead>
+            <tbody id="employee-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -100,25 +112,262 @@
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
     console.log('loaded');
-    const msalConfig={auth:{clientId:'8e23d112-104b-4e6a-a57d-7e3a2a61d837',authority:'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}};
-    const msalInstance=new msal.PublicClientApplication(msalConfig);
-    const HOST='tcco.sharepoint.com',PATH='/sites/SchedulingToolTest',EMP='SchedulingEmployeeTest',SCHED='TestTableScheduling';
-    document.getElementById('logout-btn').onclick=()=>msalInstance.logoutRedirect({postLogoutRedirectUri:window.location.origin+window.location.pathname+'logout.html'});
-    async function signIn(){if(!msalInstance.getAllAccounts().length)await msalInstance.loginPopup({scopes:['User.Read','Calendars.ReadWrite','Sites.Read.All','Sites.ReadWrite.All']});}
-    async function getToken(scopes){try{return(await msalInstance.acquireTokenSilent({scopes})).accessToken}catch{return(await msalInstance.acquireTokenPopup({scopes})).accessToken;}}
-    function client(token){return MicrosoftGraph.Client.init({authProvider:(done)=>done(null,token)});}    
-    async function getSiteId(c){return(await c.api(`/sites/${HOST}:${PATH}:/`).get()).id;}
-    async function fetchEmployees(){await signIn();const t=await getToken(['Sites.Read.All']),c=client(t),sid=await getSiteId(c),r=await c.api(`/sites/${sid}/lists/${EMP}/items`).expand('fields').get();employees=r.value.map(i=>({id:i.id,name:i.fields.Title,email:i.fields.Employeesemail}));populateEmployeeSelects();}
-    async function fetchEntries(){await signIn();const t=await getToken(['Sites.Read.All']),c=client(t),sid=await getSiteId(c),r=await c.api(`/sites/${sid}/lists/${SCHED}/items`).expand('fields').get();entries=r.value.map(i=>({id:i.id,title:i.fields.Title,topic:i.fields.Topic,status:i.fields.Status,start:i.fields.Start,end:i.fields.End,location:i.fields.Location,link:i.fields.Link,industry:i.fields.Industry,desc:i.fields.Description,deadline:i.fields.Deadline,deliver:i.fields.Deliverables,type:i.fields.Type,reco:i.fields.RecoEmp,assigned:i.fields.AssignedEmp,notes:i.fields.Notes}));renderList();}
-    let employees=[],entries=[],editingIndex=null;
-    const tbody=document.getElementById('entries-tbody'),newAssigned=document.getElementById('new-assigned'),addBtn=document.getElementById('add-entry-btn');
-    function populateEmployeeSelects(){newAssigned.innerHTML='<option value="">--Select--</option>';employees.forEach(e=>{const o=document.createElement('option');o.value=e.email;o.textContent=e.name;newAssigned.appendChild(o);});}
-    function renderList(){tbody.innerHTML='';entries.forEach((e,idx)=>{const emp=employees.find(x=>x.email===e.assigned)||{},dn=emp.name||e.assigned,tr=document.createElement('tr');tr.innerHTML=`<td><button class="btn btn-link p-0" data-idx="${idx}" data-action="menu">⋮</button></td><td>${e.title}</td><td>${e.topic}</td><td>${e.status}</td><td>${e.start}</td><td>${e.end}</td><td>${e.location}</td><td><a href="${e.link}" target="_blank">link</a></td><td>${e.industry}</td><td>${e.desc}</td><td>${e.deadline}</td><td>${e.deliver}</td><td>${e.type}</td><td>${e.reco}</td><td>${dn}</td><td>${e.notes}</td><td></td>`;tbody.appendChild(tr);});}
-    document.getElementById('calendar-view-btn').onclick=()=>{renderCalendar();document.getElementById('list-container').style.display='none';document.getElementById('calendar-container').style.display='block';};
-    document.getElementById('calendar-list-view-btn').onclick=()=>{document.getElementById('calendar-container').style.display='none';document.getElementById('list-container').style.display='block';};
-    function renderCalendar(){let d=new Date(),y=d.getFullYear(),m=d.getMonth(),f=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),html='<table class="table table-bordered"><tr>'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(t=>`<th>${t}</th>`).join('')+'</tr><tr>';for(let i=0;i<f;i++)html+='<td></td>';for(let day=1;day<=days;day++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,evs=entries.filter(e=>e.start<=ds&&ds<=e.end);html+=`<td><strong>${day}</strong>${evs.map(ev=>`<div>${ev.title}</div>`).join('')}</td>`;if((day+f)%7==0&&day<days)html+='</tr><tr>';}html+='</tr></table>';document.getElementById('calendar-table-wrapper').innerHTML=html;}
-    addBtn.onclick=()=>{/* implement add/update entry */};
-    (async ()=>{await fetchEmployees();await fetchEntries();})();
+    const msalConfig = {
+      auth: {
+        clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
+        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+        redirectUri: window.location.origin + window.location.pathname
+      },
+      cache: { cacheLocation: 'localStorage' }
+    };
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+    const HOST = 'tcco.sharepoint.com',
+          PATH = '/sites/SchedulingToolTest',
+          EMP = 'SchedulingEmployeeTest',
+          SCHED = 'TestTableScheduling';
+
+    document.getElementById('logout-btn').onclick = () =>
+      msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin + window.location.pathname + 'logout.html' });
+
+    async function signIn() {
+      if (!msalInstance.getAllAccounts().length) {
+        await msalInstance.loginPopup({ scopes: ['User.Read','Calendars.ReadWrite','Sites.Read.All','Sites.ReadWrite.All'] });
+      }
+    }
+    async function getToken(scopes) {
+      try { return (await msalInstance.acquireTokenSilent({ scopes })).accessToken; }
+      catch { return (await msalInstance.acquireTokenPopup({ scopes })).accessToken; }
+    }
+    function client(token) {
+      return MicrosoftGraph.Client.init({ authProvider: (done) => done(null, token) });
+    }
+
+    async function getSiteId(c) {
+      return (await c.api(`/sites/${HOST}:${PATH}:/`).get()).id;
+    }
+
+    async function fetchEmployees() {
+      await signIn();
+      const t = await getToken(['Sites.Read.All']);
+      const c = client(t);
+      const sid = await getSiteId(c);
+      const r = await c.api(`/sites/${sid}/lists/${EMP}/items`).expand('fields').get();
+      window.employees = r.value.map(i => ({ id: i.id, name: i.fields.Title, email: i.fields.Employeesemail }));
+      populateEmployeeSelects();
+      renderEmployeeTable();
+    }
+
+    async function fetchEntries() {
+      await signIn();
+      const t = await getToken(['Sites.Read.All']);
+      const c = client(t);
+      const sid = await getSiteId(c);
+      const r = await c.api(`/sites/${sid}/lists/${SCHED}/items`).expand('fields').get();
+      window.entries = r.value.map(i => ({
+        id: i.id,
+        title: i.fields.Title,
+        topic: i.fields.Topic,
+        status: i.fields.Status,
+        start: i.fields.Start,
+        end: i.fields.End,
+        location: i.fields.Location,
+        link: i.fields.Link,
+        industry: i.fields.Industry,
+        desc: i.fields.Description,
+        deadline: i.fields.Deadline,
+        deliver: i.fields.Deliverables,
+        type: i.fields.Type,
+        reco: i.fields.RecoEmp,
+        assigned: i.fields.AssignedEmp,
+        notes: i.fields.Notes
+      }));
+      renderList();
+    }
+
+    // Globals
+    let editingIndex = null;
+    const tbody = document.getElementById('entries-tbody');
+    const newAssigned = document.getElementById('new-assigned');
+    const addBtn = document.getElementById('add-entry-btn');
+
+    // Populate selects
+    function populateEmployeeSelects() {
+      newAssigned.innerHTML = '<option value="">--Select--</option>';
+      employees.forEach(e => {
+        const o = document.createElement('option');
+        o.value = e.email;
+        o.textContent = e.name;
+        newAssigned.appendChild(o);
+      });
+    }
+
+    // Render employees in modal
+    function renderEmployeeTable() {
+      const body = document.getElementById('employee-table-body');
+      body.innerHTML = '';
+      employees.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${e.name}</td>
+          <td>${e.email}</td>
+          <td><button class="btn btn-sm btn-outline-danger" data-id="${e.id}" data-action="del-emp">Delete</button></td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // Render main list
+    function renderList() {
+      tbody.innerHTML = '';
+      entries.forEach((e, idx) => {
+        const emp = employees.find(x => x.email === e.assigned) || {};
+        const dn = emp.name || e.assigned;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><button class="btn btn-link p-0" data-idx="${idx}" data-action="menu">⋮</button></td>
+          <td>${e.title}</td>
+          <td>${e.topic}</td>
+          <td>${e.status}</td>
+          <td>${e.start}</td>
+          <td>${e.end}</td>
+          <td>${e.location}</td>
+          <td><a href="${e.link}" target="_blank">link</a></td>
+          <td>${e.industry}</td>
+          <td>${e.desc}</td>
+          <td>${e.deadline}</td>
+          <td>${e.deliver}</td>
+          <td>${e.type}</td>
+          <td>${e.reco}</td>
+          <td>${dn}</td>
+          <td>${e.notes}</td>
+          <td></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Initialize Bootstrap modal instance
+    const empModal = new bootstrap.Modal(document.getElementById('employeeModal'));
+
+    // Manage Employees button
+    document.getElementById('edit-employees-btn').onclick = () => empModal.show();
+
+    // Add Employee
+    document.getElementById('add-emp-btn').onclick = async () => {
+      const name = prompt('Enter employee name:'); if (!name) return;
+      const email = prompt('Enter employee email:'); if (!email) return;
+      await signIn();
+      const t = await getToken(['Sites.ReadWrite.All']);
+      const c = client(t);
+      const sid = await getSiteId(c);
+      await c.api(`/sites/${sid}/lists/${EMP}/items`).post({ fields: { Title: name, Employeesemail: email } });
+      await fetchEmployees();
+    };
+
+    // Add or Save Entry
+    addBtn.onclick = async () => {
+      const fields = {
+        Title: document.getElementById('new-title').value,
+        Topic: document.getElementById('new-topic').value,
+        Status: document.getElementById('new-status').value,
+        Start: document.getElementById('new-start').value,
+        End: document.getElementById('new-end').value,
+        Location: document.getElementById('new-location').value,
+        Link: document.getElementById('new-link').value,
+        Industry: document.getElementById('new-industry').value,
+        Description: document.getElementById('new-desc').value,
+        Deadline: document.getElementById('new-deadline').value,
+        Deliverables: document.getElementById('new-deliver').value,
+        Type: document.getElementById('new-type').value,
+        RecoEmp: document.getElementById('new-reco').value,
+        AssignedEmp: document.getElementById('new-assigned').value,
+        Notes: document.getElementById('new-notes').value
+      };
+      await signIn();
+      const t = await getToken(['Sites.ReadWrite.All']);
+      const c = client(t);
+      const sid = await getSiteId(c);
+      if (editingIndex === null) {
+        await c.api(`/sites/${sid}/lists/${SCHED}/items`).post({ fields });
+      } else {
+        const itemId = entries[editingIndex].id;
+        await c.api(`/sites/${sid}/lists/${SCHED}/items/${itemId}`).patch({ fields });
+        editingIndex = null;
+        addBtn.textContent = 'Add';
+      }
+      await fetchEntries();
+      // Clear inputs
+      document.querySelectorAll('tfoot input, tfoot textarea, tfoot select').forEach(el => el.value = '');
+    };
+
+    // Row Actions (Edit/Delete)
+    tbody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const idx = btn.dataset.idx || btn.dataset.id;
+      if (action === 'menu') {
+        const choice = prompt('Type "edit" to edit or "delete" to remove this entry:');
+        if (choice === 'edit') {
+          editingIndex = idx;
+          const e = entries[idx];
+          ['title','topic','status','start','end','location','link','industry','desc','deadline','deliver','type','reco','assigned','notes'].forEach(field => {
+            const el = document.getElementById(`new-${field}`);
+            if (el) el.value = e[field];
+          });
+          addBtn.textContent = 'Save';
+        } else if (choice === 'delete') {
+          if (confirm('Are you sure you want to delete this entry?')) {
+            await signIn();
+            const t2 = await getToken(['Sites.ReadWrite.All']);
+            const c2 = client(t2);
+            const sid2 = await getSiteId(c2);
+            await c2.api(`/sites/${sid2}/lists/${SCHED}/items/${entries[idx].id}`).delete();
+            await fetchEntries();
+          }
+        }
+      } else if (action === 'del-emp') {
+        if (confirm('Remove this employee?')) {
+          await signIn();
+          const t3 = await getToken(['Sites.ReadWrite.All']);
+          const c3 = client(t3);
+          const sid3 = await getSiteId(c3);
+          await c3.api(`/sites/${sid3}/lists/${EMP}/items/${idx}`).delete();
+          await fetchEmployees();
+        }
+      }
+    });
+
+    // View toggles
+    document.getElementById('calendar-view-btn').onclick = () => {
+      renderCalendar();
+      document.getElementById('list-container').style.display = 'none';
+      document.getElementById('calendar-container').style.display = 'block';
+    };
+    document.getElementById('calendar-list-view-btn').onclick = () => {
+      document.getElementById('calendar-container').style.display = 'none';
+      document.getElementById('list-container').style.display = 'block';
+    };
+
+    // Calendar renderer
+    function renderCalendar() {
+      const d = new Date(), y = d.getFullYear(), m = d.getMonth();
+      const f = new Date(y, m, 1).getDay();
+      const days = new Date(y, m+1, 0).getDate();
+      let html = '<table class="table table-bordered"><tr>' + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(t=>`<th>${t}</th>`).join('') + '</tr><tr>';
+      for (let i=0; i<f; i++) html += '<td></td>';
+      for (let day=1; day<=days; day++) {
+        const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const evs = entries.filter(e => e.start <= ds && ds <= e.end);
+        html += `<td><strong>${day}</strong>${evs.map(ev => `<div>${ev.title}</div>`).join('')}</td>`;
+        if ((day+f) %7==0 && day<days) html+='</tr><tr>';
+      }
+      html+='</tr></table>';
+      document.getElementById('calendar-table-wrapper').innerHTML = html;
+    }
+
+    // Bootstrap modals & initial data load
+    (async () => { await fetchEmployees(); await fetchEntries(); })();
   </script>
 </body>
 </html>
