@@ -246,29 +246,123 @@
       }
 
       function renderList() {
-        const tbody = document.getElementById('entries-tbody');
-        tbody.innerHTML = '';
-        window.entries.forEach(e => {
-          const emp = window.employees.find(x => x.email === e.assigned) || {};
-          const dn = emp.name || e.assigned || '';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td></td><td>${e.title}</td><td>${e.topic}</td><td>${e.status}</td><td>${e.start}</td><td>${e.end}</td>
-            <td>${e.location}</td><td><a href="${e.link}" target="_blank">link</a></td><td>${e.industry}</td><td>${e.desc}</td>
-            <td>${e.deadline}</td><td>${e.deliver}</td><td>${e.type}</td><td>${e.reco}</td><td>${dn}</td><td>${e.notes}</td>
-            <td><button class="btn btn-sm btn-outline-danger" data-id="${e.id}">Delete</button></td>
-          `;
-          tr.querySelector('button').addEventListener('click', async () => {
-            const token = await getToken(['Sites.ReadWrite.All']);
-            const g = client(token);
-            const sid = await getSiteId(g);
-            await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
-            await fetchEntries();
-          });
-          tbody.appendChild(tr);
-        });
-      }
+  const tbody = document.getElementById('entries-tbody');
+  tbody.innerHTML = '';
+  window.entries.forEach(e => {
+    const emp = window.employees.find(x => x.email === e.assigned) || {};
+    const dn = emp.name || e.assigned || '';
+    const tr = document.createElement('tr');
 
+    tr.innerHTML = `
+      <td></td>
+      <td>${e.title}</td>
+      <td>${e.topic}</td>
+      <td>${e.status}</td>
+      <td>${e.start}</td>
+      <td>${e.end}</td>
+      <td>${e.location}</td>
+      <td><a href="${e.link}" target="_blank">link</a></td>
+      <td>${e.industry}</td>
+      <td>${e.desc}</td>
+      <td>${e.deadline}</td>
+      <td>${e.deliver}</td>
+      <td>${e.type}</td>
+      <td>${e.reco}</td>
+      <td>${dn}</td>
+      <td>${e.notes}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1 edit-entry" data-id="${e.id}">Edit</button>
+        <button class="btn btn-sm btn-outline-danger del-entry" data-id="${e.id}">Delete</button>
+      </td>
+    `;
+
+    // Delete logic (unchanged)
+    tr.querySelector('.del-entry').addEventListener('click', async () => {
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const g = client(token);
+      const sid = await getSiteId(g);
+      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
+      await fetchEntries();
+    });
+
+    // Edit logic
+    tr.querySelector('.edit-entry').addEventListener('click', () => {
+      enableEditMode(tr, e);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+function enableEditMode(row, entry) {
+  const fields = [
+    'title', 'topic', 'status', 'start', 'end',
+    'location', 'link', 'industry', 'desc',
+    'deadline', 'deliver', 'type', 'reco', 'assigned', 'notes'
+  ];
+
+  const td = row.querySelectorAll('td');
+  td[1].innerHTML = `<input class="form-control form-control-sm" value="${entry.title || ''}" />`;
+  td[2].innerHTML = `<input class="form-control form-control-sm" value="${entry.topic || ''}" />`;
+  td[3].innerHTML = `<input class="form-control form-control-sm" value="${entry.status || ''}" />`;
+  td[4].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.start || ''}" />`;
+  td[5].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.end || ''}" />`;
+  td[6].innerHTML = `<input class="form-control form-control-sm" value="${entry.location || ''}" />`;
+  td[7].innerHTML = `<input class="form-control form-control-sm" value="${entry.link || ''}" />`;
+  td[8].innerHTML = `<input class="form-control form-control-sm" value="${entry.industry || ''}" />`;
+  td[9].innerHTML = `<textarea class="form-control form-control-sm">${entry.desc || ''}</textarea>`;
+  td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.deadline || ''}" />`;
+  td[11].innerHTML = `<textarea class="form-control form-control-sm">${entry.deliver || ''}</textarea>`;
+  td[12].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
+  td[12].querySelector('select').value = entry.type || 'Internal';
+  td[13].innerHTML = `<input class="form-control form-control-sm" value="${entry.reco || ''}" />`;
+
+  td[14].innerHTML = `
+    <select class="form-select form-select-sm">
+      ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.assigned ? 'selected' : ''}>${e.name}</option>`).join('')}
+    </select>`;
+
+  td[15].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
+
+  td[16].innerHTML = `
+    <button class="btn btn-sm btn-success me-1 save-edit">Save</button>
+    <button class="btn btn-sm btn-secondary cancel-edit">Cancel</button>`;
+
+  td[16].querySelector('.save-edit').addEventListener('click', async () => {
+    const updated = {
+      Title: td[1].querySelector('input').value,
+      Topic: td[2].querySelector('input').value,
+      RegistrationStatus: td[3].querySelector('input').value,
+      StartDate: td[4].querySelector('input').value,
+      EndDate: td[5].querySelector('input').value,
+      Location: td[6].querySelector('input').value,
+      Link: td[7].querySelector('input').value,
+      Industry: td[8].querySelector('input').value,
+      Description: td[9].querySelector('textarea').value,
+      ApplicationDeadline: td[10].querySelector('input').value,
+      Deliverables: td[11].querySelector('textarea').value,
+      Internal_x002f_External: td[12].querySelector('select').value,
+      RecommendedEmployee: td[13].querySelector('input').value,
+      AssignedEmployee: td[14].querySelector('select').value,
+      Notes: td[15].querySelector('textarea').value
+    };
+
+    try {
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const g = client(token);
+      const sid = await getSiteId(g);
+      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
+        .patch(updated);
+      await fetchEntries();
+    } catch (err) {
+      console.error('editEntry failed:', err);
+      alert(`Failed to save edits:\n${err.message}`);
+    }
+  });
+
+  td[16].querySelector('.cancel-edit').addEventListener('click', () => {
+    renderList(); // revert the table
+  });
+}
       document.getElementById('calendar-view-btn').addEventListener('click', () => {
         document.getElementById('calendar-container').style.display = 'block';
         document.getElementById('list-container').style.display = 'none';
