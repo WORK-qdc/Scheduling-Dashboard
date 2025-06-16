@@ -1,0 +1,13 @@
+<!-- logout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"/><title>Signing Out</title></head>
+<body>
+  <p>Signing you out…</p>
+  <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
+  <script>
+    const logoutConfig = { auth:{ clientId:"8e23d112-104b-4e6a-a57d-7e3a2a61d837", authority:"https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289", redirectUri:window.location.origin+window.location.pathname }};
+    new msal.PublicClientApplication(logoutConfig).logoutRedirect();
+  </script>
+</body>
+</html>
