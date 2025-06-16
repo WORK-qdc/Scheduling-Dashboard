@@ -71,16 +71,15 @@
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script>
-    // Debug log to confirm script load
+    // Confirm script load
     console.log("Scheduling tool script loaded");
 
-    // MSAL & Graph configuration with explicit redirectUri
+    // MSAL & Graph configuration
     const msalConfig = {
       auth: {
         clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d837",
         authority: "https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289",
-        // Must exactly match a redirect URI configured in Azure AD
-        redirectUri: "https://work-qdc.github.io/index.html"
+        redirectUri: window.location.origin + window.location.pathname // e.g. https://work-qdc.github.io/Scheduling-Dashboard/
       },
       cache: { cacheLocation: "localStorage" }
     };
@@ -89,14 +88,17 @@
     const EMP_LIST_ID   = "SchedulingEmployeeTest";
     const SCHED_LIST_ID = "TestTableScheduling";
 
-    let employees = [], entries = [], editingIndex = null;
+    let employees = [];
+    let entries = [];
+    let editingIndex = null;
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const graphClient = token => MicrosoftGraph.Client.init({ authProvider: done => done(null, token) });
 
-    // Logout handler only on button click
+    // Logout button only fires on click
     document.getElementById('logout-btn').onclick = () => {
       msalInstance.logoutRedirect({
-        postLogoutRedirectUri: "https://work-qdc.github.io/logout.html"
+        postLogoutRedirectUri: window.location.origin + window.location.pathname + 'logout.html'
       });
     };
 
@@ -141,11 +143,8 @@
         const token = await getToken(["Sites.Read.All"]);
         const client = graphClient(token);
         const siteId = await getSiteId(client);
-        console.log("  siteId=", siteId);
-        const res = await client
-          .api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`)
-          .expand("fields")
-          .get();
+        console.log("  siteId =", siteId);
+        const res = await client.api(`/sites/${siteId}/lists/${EMP_LIST_ID}/items`).expand("fields").get();
         employees = res.value.map(i => ({ id: i.id, name: i.fields.Title, email: i.fields.Employeesemail }));
         populateEmployeeSelects();
       } catch (e) {
@@ -153,7 +152,7 @@
       }
     }
 
-    // Fetch entries
+    // Fetch scheduling entries
     async function fetchEntries() {
       console.log("fetchEntries()");
       try {
@@ -161,28 +160,25 @@
         const token = await getToken(["Sites.Read.All"]);
         const client = graphClient(token);
         const siteId = await getSiteId(client);
-        console.log("  siteId=", siteId);
-        const res = await client
-          .api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`)
-          .expand("fields")
-          .get();
+        console.log("  siteId =", siteId);
+        const res = await client.api(`/sites/${siteId}/lists/${SCHED_LIST_ID}/items`).expand("fields").get();
         entries = res.value.map(i => ({
-          id: i.id,
-          title: i.fields.Title,
-          topic: i.fields.Topic,
-          status: i.fields.Status,
-          start: i.fields.Start,
-          end: i.fields.End,
+          id:       i.id,
+          title:    i.fields.Title,
+          topic:    i.fields.Topic,
+          status:   i.fields.Status,
+          start:    i.fields.Start,
+          end:      i.fields.End,
           location: i.fields.Location,
-          link: i.fields.Link,
+          link:     i.fields.Link,
           industry: i.fields.Industry,
-          desc: i.fields.Description,
+          desc:     i.fields.Description,
           deadline: i.fields.Deadline,
-          deliver: i.fields.Deliverables,
-          type: i.fields.Type,
-          reco: i.fields.RecoEmp,
+          deliver:  i.fields.Deliverables,
+          type:     i.fields.Type,
+          reco:     i.fields.RecoEmp,
           assigned: i.fields.AssignedEmp,
-          notes: i.fields.Notes
+          notes:    i.fields.Notes
         }));
         renderList();
       } catch (e) {
@@ -190,16 +186,15 @@
       }
     }
 
-    // Include your existing renderList, renderCalendar, CRUD handlers, modal, view-switch code here unchanged
+    // DOM bindings, renderList, renderCalendar, CRUD handlers, modal, view-switch unchanged
     // ...
 
-    // Initialize data
+    // Initialize data fetches
     (async () => {
       await fetchEmployees();
       await fetchEntries();
     })();
   </script>
-
 </body>
 </html>
 
@@ -215,15 +210,17 @@
   <p>Signing you out…</p>
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script>
-    const msalLogoutConfig = {
+    // MSAL config for logout page
+    const msalConfigLogout = {
       auth: {
-        clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d8337",
+        clientId: "8e23d112-104b-4e6a-a57d-7e3a2a61d837",
         authority: "https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289",
-        redirectUri: "https://work-qdc.github.io/index.html"
+        redirectUri: window.location.origin + window.location.pathname // https://work-qdc.github.io/Scheduling-Dashboard/logout.html
       },
       cache: { cacheLocation: "localStorage" }
     };
-    const msalInstanceLogout = new msal.PublicClientApplication(msalLogoutConfig);
+    const msalInstanceLogout = new msal.PublicClientApplication(msalConfigLogout);
     msalInstanceLogout.logoutRedirect();
   </script>
+</body>
 </html>
