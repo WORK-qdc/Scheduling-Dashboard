@@ -196,6 +196,7 @@
       Title:                     document.getElementById('new-title').value,
       Topic:                     document.getElementById('new-topic').value,
       RegistrationStatus:        document.getElementById('new-status').value,
+      TypeofEngagement:          document.getElementById('new-type').value,
       StartDate:                 document.getElementById('new-start').value,
       EndDate:                   document.getElementById('new-end').value,
       Location:                  document.getElementById('new-location').value,
@@ -331,6 +332,7 @@ function enableEditMode(row, entry) {
     const updated = {
       Title: td[1].querySelector('input').value,
       Topic: td[2].querySelector('input').value,
+      TypeofEngagement: td[12].querySelector('select').value,
       RegistrationStatus: td[3].querySelector('input').value,
       StartDate: td[4].querySelector('input').value,
       EndDate: td[5].querySelector('input').value,
