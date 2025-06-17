@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scheduling Tool</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <style>
     #calendar-container {
       display: none;
@@ -245,7 +250,41 @@
           body.appendChild(tr);
         });
       }
+function renderCalendarView() {
+  const container = document.getElementById('calendar-table-wrapper');
+  container.innerHTML = ''; // Clear any previous content
 
+  const calendarEl = document.createElement('div');
+  container.appendChild(calendarEl);
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    height: 'auto',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listWeek'
+    },
+    events: window.entries.map(e => ({
+      id: e.id,
+      title: e.title || '(No Title)',
+      start: e.start,
+      end: e.end,
+      extendedProps: {
+        location: e.location,
+        notes: e.notes
+      }
+    })),
+    eventClick: function(info) {
+      const { title, start, end, extendedProps } = info.event;
+      alert(
+        `Event: ${title}\nStart: ${start.toLocaleString()}\nEnd: ${end?.toLocaleString() || 'N/A'}\nLocation: ${extendedProps.location || 'N/A'}\nNotes: ${extendedProps.notes || 'None'}`
+      );
+    }
+  });
+
+  calendar.render();
+}
       function renderList() {
   const tbody = document.getElementById('entries-tbody');
   tbody.innerHTML = '';
@@ -366,11 +405,14 @@ function enableEditMode(row, entry) {
   });
 }
       document.getElementById('calendar-view-btn').addEventListener('click', () => {
-        document.getElementById('calendar-container').style.display = 'block';
-        document.getElementById('list-container').style.display = 'none';
-        document.getElementById('calendar-view-btn').classList.add('d-none');
-        document.getElementById('list-view-btn').classList.remove('d-none');
-      });
+  document.getElementById('calendar-container').style.display = 'block';
+  document.getElementById('list-container').style.display = 'none';
+  document.getElementById('calendar-view-btn').classList.add('d-none');
+  document.getElementById('list-view-btn').classList.remove('d-none');
+
+  renderCalendarView(); //
+});
+
       document.getElementById('list-view-btn').addEventListener('click', () => {
         document.getElementById('calendar-container').style.display = 'none';
         document.getElementById('list-container').style.display = 'block';
