@@ -403,7 +403,7 @@ function enableEditMode(row, entry) {
 
   td[14].innerHTML = `
     <select class="form-select form-select-sm">
-      ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.assigned ? 'selected' : ''}>${e.name}</option>`).join('')}
+      ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`).join('')}
     </select>`;
 
   td[15].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
