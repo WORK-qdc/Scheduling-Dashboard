@@ -334,8 +334,8 @@ function renderCalendarView() {
   const tbody = document.getElementById('entries-tbody');
   tbody.innerHTML = '';
   window.entries.forEach(e => {
-    const emp = window.employees.find(x => x.email === e.assigned) || {};
-    const dn = emp.name || e.assigned || '';
+    const emp = window.employees.find(x => x.email === e.AssignedEmployee) || {};
+    const dn = emp.name || e.AssignedEmployee || '';
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
