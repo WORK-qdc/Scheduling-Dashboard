@@ -171,7 +171,7 @@
         const sid = await getSiteId(g);
         const r = await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).expand('fields').get();
         window.entries = r.value.map(i => ({
-          id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.Status,
+          id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
           deadline: i.fields.Deadline, deliver: i.fields.Deliverables, type: i.fields.Type,
