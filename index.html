@@ -174,7 +174,7 @@
           id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
-          deadline: i.fields.Deadline, deliver: i.fields.Deliverables, type: i.fields.Type,
+          deadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, type: i.fields.Type,
           reco: i.fields.RecoEmp, assigned: i.fields.AssignedEmp, notes: i.fields.Notes
         }));
         renderList();
@@ -416,7 +416,7 @@ function enableEditMode(row, entry) {
   Link: td[7].querySelector('input').value,
   Industry: td[8].querySelector('input').value,
   Description: td[9].querySelector('textarea').value,
-  Deadline: td[10].querySelector('input').value,
+  ApplicationDeadline: td[10].querySelector('input').value,
   Deliverables: td[11].querySelector('textarea').value,
   Type: td[12].querySelector('select').value,
   RecoEmp: td[13].querySelector('input').value,
