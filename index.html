@@ -52,7 +52,7 @@
           <tr>
             <th></th><th>Title</th><th>Topic</th><th>Status</th><th>Start</th><th>End</th>
             <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>ApplicationDeadline</th>
-            <th>Deliverables</th><th>Internal/External</th><th>RecommendedEmployeemmendedEmployee</th>
+            <th>Deliverables</th><th>Internal/External</th><th>RecommendedEmployee</th>
             <th>Assigned Emp. <button type="button" id="edit-employees-btn" class="btn btn-sm btn-outline-secondary ms-2">Manage Employees</button></th>
             <th>Notes</th><th>Actions</th>
           </tr>
@@ -175,7 +175,7 @@
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
           applicationdeadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, internalExternal: i.fields.Internal_x002f_External,
-          RecommendedEmployee: i.fields.RecommendedEmployeeEmp, assigned: i.fields.AssignedEmp, notes: i.fields.Notes
+          RecommendedEmployee: i.fields.RecommendedEmployee, assigned: i.fields.AssignedEmp, notes: i.fields.Notes
         }));
         renderList();
       }
@@ -211,7 +211,7 @@
       ApplicationDeadline:       document.getElementById('new-applicationdeadline').value,
       Deliverables:              document.getElementById('new-deliver').value,
       Internal_x002f_External:   document.getElementById('new-internal/external').value,
-      RecommendedEmployeemmendedEmployee:       document.getElementById('new-RecommendedEmployee').value,
+      RecommendedEmployee:       document.getElementById('new-RecommendedEmployee').value,
       AssignedEmployee:          document.getElementById('new-assigned').value,
       Notes:                     document.getElementById('new-notes').value
     };
@@ -419,7 +419,7 @@ function enableEditMode(row, entry) {
   ApplicationDeadline: td[10].querySelector('input').value,
   Deliverables: td[11].querySelector('textarea').value,
   Internal_x002f_External: td[12].querySelector('select').value,
-  RecommendedEmployeeEmp: td[13].querySelector('input').value,
+  RecommendedEmployee: td[13].querySelector('input').value,
   AssignedEmp: td[14].querySelector('select').value,
   Notes: td[15].querySelector('textarea').value
 };
