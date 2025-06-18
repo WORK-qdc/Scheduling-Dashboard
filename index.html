@@ -444,7 +444,7 @@ set('Notes',                   td[13].querySelector('textarea').value);
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
       .patch(updated);
     // ✅ Send calendar invite when an employee is assigned
-const assignedName = td[13].querySelector('select').value;
+const assignedName = td[12].querySelector('select').value;
 const assignedEmail = (window.employees.find(e => e.name === assignedName) || {}).email;
 
 if (assignedEmail && assignedEmail.includes('@')) {
