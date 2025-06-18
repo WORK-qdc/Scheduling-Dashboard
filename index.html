@@ -51,8 +51,8 @@
         <thead class="table-light">
           <tr>
             <th></th><th>Title</th><th>Topic</th><th>Status</th><th>Start</th><th>End</th>
-            <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>applicationdeadline</th>
-            <th>Deliverables</th><th>Type</th><th>Reco. Emp.</th>
+            <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>ApplicationDeadline</th>
+            <th>Deliverables</th><th>Internal/External</th><th>Reco. Emp.</th>
             <th>Assigned Emp. <button type="button" id="edit-employees-btn" class="btn btn-sm btn-outline-secondary ms-2">Manage Employees</button></th>
             <th>Notes</th><th>Actions</th>
           </tr>
@@ -174,7 +174,7 @@
           id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
-          applicationdeadline: i.fields.applicationdeadline, deliver: i.fields.Deliverables, type: i.fields.Type,
+          applicationdeadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, Internal/External: i.fields.internal/external,
           reco: i.fields.RecoEmp, assigned: i.fields.AssignedEmp, notes: i.fields.Notes
         }));
         renderList();
@@ -210,7 +210,7 @@
       Description:               document.getElementById('new-desc').value,
       Applicationdeadline:       document.getElementById('new-applicationdeadline').value,
       Deliverables:              document.getElementById('new-deliver').value,
-      Internal_x002f_External:   document.getElementById('new-type').value,
+      Internal_x002f_External:   document.getElementById('new-internal/external').value,
       RecommendedEmployee:       document.getElementById('new-reco').value,
       AssignedEmployee:          document.getElementById('new-assigned').value,
       Notes:                     document.getElementById('new-notes').value
@@ -344,7 +344,7 @@ function renderCalendarView() {
       <td>${e.desc}</td>
       <td>${e.applicationdeadline}</td>
       <td>${e.deliver}</td>
-      <td>${e.type}</td>
+      <td>${e.internal/external}</td>
       <td>${e.reco}</td>
       <td>${dn}</td>
       <td>${e.notes}</td>
@@ -375,7 +375,7 @@ function enableEditMode(row, entry) {
   const fields = [
     'title', 'topic', 'status', 'start', 'end',
     'location', 'link', 'industry', 'desc',
-    'applicationdeadline', 'deliver', 'type', 'reco', 'assigned', 'notes'
+    'applicationdeadline', 'deliver', 'internal/external', 'reco', 'assigned', 'notes'
   ];
 
   const td = row.querySelectorAll('td');
@@ -418,7 +418,7 @@ function enableEditMode(row, entry) {
   Description: td[9].querySelector('textarea').value,
   ApplicationDeadline: td[10].querySelector('input').value,
   Deliverables: td[11].querySelector('textarea').value,
-  Type: td[12].querySelector('select').value,
+  Internal/External: td[12].querySelector('select').value,
   RecoEmp: td[13].querySelector('input').value,
   AssignedEmp: td[14].querySelector('select').value,
   Notes: td[15].querySelector('textarea').value
