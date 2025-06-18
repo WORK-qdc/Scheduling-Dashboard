@@ -400,7 +400,7 @@ function enableEditMode(row, entry) {
   td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.applicationdeadline)}" />`;
   td[11].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
   td[12].querySelector('select').value = entry.type || 'Internal';
-  td[13].innerHTML = `<select class="form-select form-select-sm"> ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`).join('')} </select>`;
+  td[13].innerHTML = `<select class="form-select form-select-sm">   ${window.employees.map(e => `     <option value="${e.name}" ${e.name === entry.AssignedEmployee ? 'selected' : ''}>       ${e.name}     </option>`).join('')} </select>`;
   td[15].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
   td[16].innerHTML = `
     <button class="btn btn-sm btn-success me-1 save-edit">Save</button>
@@ -422,7 +422,7 @@ function enableEditMode(row, entry) {
   set('Description', td[9].querySelector('textarea').value);
   set('ApplicationDeadline', td[10].querySelector('input').value);
   set('Internal_x002f_External', td[12].querySelector('select').value);
-  set('AssignedEmployee', td[14].querySelector('select').selectedOptions[0].textContent);
+  set('AssignedEmployee', td[13].querySelector('select').selectedOptions[0].textContent);
   set('Notes', td[15].querySelector('textarea').value);
 
   try {
@@ -435,7 +435,7 @@ function enableEditMode(row, entry) {
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
       .patch(updated);
     // ✅ Send calendar invite when an employee is assigned
-const assignedName = td[14].querySelector('select').value;
+const assignedName = td[13].querySelector('select').value;
 const assignedEmail = (window.employees.find(e => e.name === assignedName) || {}).email;
 
 if (assignedEmail && assignedEmail.includes('@')) {
