@@ -224,7 +224,7 @@
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
 
-    // ✅ Updated calendar invite with sendInvitations=true and correct format
+// ✅ Send calendar invite
 if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
   const event = {
     subject: fields.Title || 'Scheduled Event',
@@ -263,7 +263,7 @@ if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
     console.log('✅ Calendar invite sent to:', assignedEmployeeEmail);
   } catch (inviteErr) {
     console.error('❌ Failed to send calendar invite:', inviteErr);
-    alert(`Warning: Event created, but failed to send invite:\n${inviteErr.message}`);
+    alert(`Event created, but failed to send invite:\n${inviteErr.message}`);
   }
 }
 
@@ -451,6 +451,51 @@ function enableEditMode(row, entry) {
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
       .patch(updated);
+    // ✅ Send calendar invite when an employee is assigned
+const assignedEmail = td[14].querySelector('select').value;
+const assignedName = td[14].querySelector('select').selectedOptions[0].textContent;
+
+if (assignedEmail && assignedEmail.includes('@')) {
+  const event = {
+    subject: updated.Title || 'Scheduled Event',
+    body: {
+      contentType: 'Text',
+      content: updated.Description || 'Scheduled event via scheduling tool.'
+    },
+    start: {
+      dateTime: `${updated.StartDate || entry.start}T09:00:00`,
+      timeZone: 'UTC'
+    },
+    end: {
+      dateTime: `${updated.EndDate || entry.end}T17:00:00`,
+      timeZone: 'UTC'
+    },
+    location: {
+      displayName: updated.Location || 'TBD'
+    },
+    attendees: [
+      {
+        emailAddress: {
+          address: assignedEmail,
+          name: assignedName
+        },
+        type: 'required'
+      }
+    ],
+    responseRequested: true,
+    isOnlineMeeting: false
+  };
+
+  try {
+    await g.api('/me/events')
+      .query({ sendInvitations: true })
+      .post(event);
+    console.log('✅ Calendar invite sent to:', assignedEmail);
+  } catch (inviteErr) {
+    console.error('❌ Failed to send calendar invite:', inviteErr);
+    alert(`Event updated, but failed to send invite:\n${inviteErr.message}`);
+  }
+}
 
     await fetchEntries();
   } catch (err) {
