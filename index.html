@@ -224,34 +224,48 @@
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
 
-    // 🟢 Send calendar invite using email
-    if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
-      const event = {
-        subject: fields.Title || 'Scheduled Event',
-        body: {
-          contentType: 'Text',
-          content: fields.Description || 'Scheduled event via scheduling tool.'
+    // ✅ Updated calendar invite with sendInvitations=true and correct format
+if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
+  const event = {
+    subject: fields.Title || 'Scheduled Event',
+    body: {
+      contentType: 'Text',
+      content: fields.Description || 'Scheduled event via scheduling tool.'
+    },
+    start: {
+      dateTime: `${fields.StartDate}T09:00:00`,
+      timeZone: 'UTC'
+    },
+    end: {
+      dateTime: `${fields.EndDate}T17:00:00`,
+      timeZone: 'UTC'
+    },
+    location: {
+      displayName: fields.Location || 'TBD'
+    },
+    attendees: [
+      {
+        emailAddress: {
+          address: assignedEmployeeEmail,
+          name: assignedEmployeeName
         },
-        start: { dateTime: fields.StartDate, timeZone: 'UTC' },
-        end: { dateTime: fields.EndDate, timeZone: 'UTC' },
-        location: { displayName: fields.Location || 'TBD' },
-        attendees: [{
-          emailAddress: {
-            address: assignedEmployeeEmail,
-            name: assignedEmployeeName
-          },
-          type: 'required'
-        }]
-      };
-
-      try {
-        await g.api('/me/events').post(event);
-        console.log('Calendar invite sent successfully.');
-      } catch (inviteErr) {
-        console.error('Failed to send calendar invite:', inviteErr);
-        alert(`Warning: Event created, but failed to send invite:\n${inviteErr.message}`);
+        type: 'required'
       }
-    }
+    ],
+    responseRequested: true,
+    isOnlineMeeting: false
+  };
+
+  try {
+    await g.api('/me/events')
+      .query({ sendInvitations: true })
+      .post(event);
+    console.log('✅ Calendar invite sent to:', assignedEmployeeEmail);
+  } catch (inviteErr) {
+    console.error('❌ Failed to send calendar invite:', inviteErr);
+    alert(`Warning: Event created, but failed to send invite:\n${inviteErr.message}`);
+  }
+}
 
     await fetchEntries();
   } catch (err) {
