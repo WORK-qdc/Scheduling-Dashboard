@@ -413,38 +413,43 @@ function enableEditMode(row, entry) {
     <button class="btn btn-sm btn-secondary cancel-edit">Cancel</button>`;
 
   td[16].querySelector('.save-edit').addEventListener('click', async () => {
-    const updated = {
-  Title: td[1].querySelector('input').value,
-  Topic: td[2].querySelector('input').value,
-  RegistrationStatus: td[3].querySelector('input').value,
-  StartDate: td[4].querySelector('input').value,
-  EndDate: td[5].querySelector('input').value,
-  Location: td[6].querySelector('input').value,
-  Link: td[7].querySelector('input').value,
-  Industry: td[8].querySelector('input').value,
-  Description: td[9].querySelector('textarea').value,
-  ApplicationDeadline: td[10].querySelector('input').value,
-  Deliverables: td[11].querySelector('textarea').value,
-  Internal_x002f_External: td[12].querySelector('select').value,
-  RecommendedEmployee: td[13].querySelector('input').value,
-  AssignedEmployee: td[14].querySelector('select').value,
-  Notes: td[15].querySelector('textarea').value
-};
+  const updated = {};
+  const set = (key, val) => {
+    if (val !== '') updated[key] = val;
+  };
 
+  set('Title', td[1].querySelector('input').value);
+  set('Topic', td[2].querySelector('input').value);
+  set('RegistrationStatus', td[3].querySelector('input').value);
+  set('StartDate', td[4].querySelector('input').value);
+  set('EndDate', td[5].querySelector('input').value);
+  set('Location', td[6].querySelector('input').value);
+  set('Link', td[7].querySelector('input').value);
+  set('Industry', td[8].querySelector('input').value);
+  set('Description', td[9].querySelector('textarea').value);
+  set('ApplicationDeadline', td[10].querySelector('input').value);
+  set('Deliverables', td[11].querySelector('textarea').value);
+  set('Internal_x002f_External', td[12].querySelector('select').value);
+  set('RecommendedEmployee', td[13].querySelector('input').value);
+  set('AssignedEmployee', td[14].querySelector('select').value);
+  set('Notes', td[15].querySelector('textarea').value);
 
-    try {
-      const token = await getToken(['Sites.ReadWrite.All']);
-      const g = client(token);
-      const sid = await getSiteId(g);
-      console.log('PATCH payload:', updated);
-      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
-        .patch(updated);
-      await fetchEntries();
-    } catch (err) {
-      console.error('editEntry failed:', err);
-      alert(`Failed to save edits:\n${err.message}`);
-    }
-  });
+  try {
+    const token = await getToken(['Sites.ReadWrite.All']);
+    const g = client(token);
+    const sid = await getSiteId(g);
+
+    console.log('PATCH payload:', updated);
+
+    await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
+      .patch(updated);
+
+    await fetchEntries();
+  } catch (err) {
+    console.error('editEntry failed:', err);
+    alert(`Failed to save edits:\n${err.message}`);
+  }
+});
 
   td[16].querySelector('.cancel-edit').addEventListener('click', () => {
     renderList(); // revert the table
