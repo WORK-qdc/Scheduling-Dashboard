@@ -197,6 +197,12 @@
     const g = client(token);
     const sid = await getSiteId(g);
 
+    // 🟢 Correct place to declare name/email
+    const sel = document.getElementById('new-AssignedEmployee');
+    const selectedOption = sel.options[sel.selectedIndex];
+    const assignedEmployeeName = selectedOption.textContent;
+    const assignedEmployeeEmail = selectedOption.value;
+
     const fields = {
       Title:                     document.getElementById('new-title').value,
       Topic:                     document.getElementById('new-topic').value,
@@ -212,56 +218,41 @@
       Deliverables:              document.getElementById('new-deliver').value,
       Internal_x002f_External:   document.getElementById('new-internal/external').value,
       RecommendedEmployee:       document.getElementById('new-RecommendedEmployee').value,
-      AssignedEmployee:          document.getElementById('new-AssignedEmployee').value,
+      AssignedEmployee:          assignedEmployeeName,  // ✅ Name saved
       Notes:                     document.getElementById('new-notes').value
     };
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
-    // Send calendar invite to assigned employee
-if (fields.AssignedEmployee && fields.AssignedEmployee.includes('@')) {
-  const sel = document.getElementById('new-AssignedEmployee');
-  const selectedOption = sel.options[sel.selectedIndex];
-  const email = selectedOption.value;
-  const name = selectedOption.getAttribute('data-name') || email;
 
-  const event = {
-    subject: fields.Title || 'Scheduled Event',
-    body: {
-      contentType: 'Text',
-      content: fields.Description || 'Scheduled event via scheduling tool.'
-    },
-    start: {
-      dateTime: fields.StartDate,
-      timeZone: 'UTC'
-    },
-    end: {
-      dateTime: fields.EndDate,
-      timeZone: 'UTC'
-    },
-    location: {
-      displayName: fields.Location || 'TBD'
-    },
-    attendees: [
-      {
-        emailAddress: {
-          address: email,
-          name: name
+    // 🟢 Send calendar invite using email
+    if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
+      const event = {
+        subject: fields.Title || 'Scheduled Event',
+        body: {
+          contentType: 'Text',
+          content: fields.Description || 'Scheduled event via scheduling tool.'
         },
-        type: 'required'
+        start: { dateTime: fields.StartDate, timeZone: 'UTC' },
+        end: { dateTime: fields.EndDate, timeZone: 'UTC' },
+        location: { displayName: fields.Location || 'TBD' },
+        attendees: [{
+          emailAddress: {
+            address: assignedEmployeeEmail,
+            name: assignedEmployeeName
+          },
+          type: 'required'
+        }]
+      };
+
+      try {
+        await g.api('/me/events').post(event);
+        console.log('Calendar invite sent successfully.');
+      } catch (inviteErr) {
+        console.error('Failed to send calendar invite:', inviteErr);
+        alert(`Warning: Event created, but failed to send invite:\n${inviteErr.message}`);
       }
-    ]
-  };
+    }
 
-  console.log('Event to send:', JSON.stringify(event, null, 2)); // Optional debug log
-
-  try {
-    await g.api('/me/events').post(event);
-    console.log('Calendar invite sent successfully.');
-  } catch (inviteErr) {
-    console.error('Failed to send calendar invite:', inviteErr);
-    alert(`Warning: Event created, but failed to send invite:\n${inviteErr.message}`);
-  }
-}
     await fetchEntries();
   } catch (err) {
     console.error('addEntry failed:', err);
@@ -434,7 +425,7 @@ function enableEditMode(row, entry) {
   set('Deliverables', td[11].querySelector('textarea').value);
   set('Internal_x002f_External', td[12].querySelector('select').value);
   set('RecommendedEmployee', td[13].querySelector('input').value);
-  set('AssignedEmployee', td[14].querySelector('select').value);
+  set('AssignedEmployee', td[14].querySelector('select').selectedOptions[0].textContent);
   set('Notes', td[15].querySelector('textarea').value);
 
   try {
