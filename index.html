@@ -71,7 +71,6 @@
             <td><input id="new-industry" class="form-control form-control-sm" placeholder="Industry" /></td>
             <td><textarea id="new-desc" rows="1" class="form-control form-control-sm" placeholder="Description"></textarea></td>
             <td><input id="new-applicationdeadline" type="date" class="form-control form-control-sm" /></td>
-            <td><textarea id="new-deliver" rows="1" class="form-control form-control-sm" placeholder="Deliverables"></textarea></td>
             <td><select id="new-type" class="form-select form-select-sm"><option>Internal</option><option>External</option></select></td>
             <td><select id="new-AssignedEmployee" class="form-select form-select-sm"><option value="">--Select--</option></select></td>
             <td><textarea id="new-notes" rows="1" class="form-control form-control-sm" placeholder="Notes"></textarea></td>
@@ -173,7 +172,7 @@
           id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
-          applicationdeadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, internalExternal: i.fields.Internal_x002f_External,
+          applicationdeadline: i.fields.ApplicationDeadline, internalExternal: i.fields.Internal_x002f_External,
         }));
         renderList();
       }
@@ -213,7 +212,6 @@
       Industry:                  document.getElementById('new-industry').value,
       Description:               document.getElementById('new-desc').value,
       ApplicationDeadline:       document.getElementById('new-applicationdeadline').value,
-      Deliverables:              document.getElementById('new-deliver').value,
       Internal_x002f_External:   document.getElementById('new-internal/external').value,
       AssignedEmployee:          assignedEmployeeName,  // ✅ Name saved
       Notes:                     document.getElementById('new-notes').value
@@ -430,7 +428,6 @@ function enableEditMode(row, entry) {
   set('Industry', td[8].querySelector('input').value);
   set('Description', td[9].querySelector('textarea').value);
   set('ApplicationDeadline', td[10].querySelector('input').value);
-  set('Deliverables', td[11].querySelector('textarea').value);
   set('Internal_x002f_External', td[12].querySelector('select').value);
   set('AssignedEmployee', td[14].querySelector('select').selectedOptions[0].textContent);
   set('Notes', td[15].querySelector('textarea').value);
