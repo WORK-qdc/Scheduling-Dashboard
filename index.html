@@ -398,14 +398,22 @@ function enableEditMode(row, entry) {
   td[8].innerHTML = `<input class="form-control form-control-sm" value="${entry.industry || ''}" />`;
   td[9].innerHTML = `<textarea class="form-control form-control-sm">${entry.desc || ''}</textarea>`;
   td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.applicationdeadline)}" />`;
-  td[11].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
-  td[12].querySelector('select').value = entry.type || 'Internal';
-  td[13].innerHTML = `<select class="form-select form-select-sm">   ${window.employees.map(e => `     <option value="${e.name}" ${e.name === entry.AssignedEmployee ? 'selected' : ''}>       ${e.name}     </option>`).join('')} </select>`;
-  td[15].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
-  td[16].innerHTML = `
+  td[11].innerHTML = `<select class="form-select form-select-sm">
+  <option>Internal</option><option>External</option>
+</select>`;
+  td[11].querySelector('select').value = entry.internalExternal || 'Internal';
+td[12].innerHTML = `<select class="form-select form-select-sm">
+  ${window.employees.map(e => 
+    `<option value="${e.name}" ${e.name === entry.AssignedEmployee ? 'selected' : ''}>
+      ${e.name}
+    </option>`
+  ).join('')}
+</select>`;
+td[13].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
+  td[14].innerHTML = `
     <button class="btn btn-sm btn-success me-1 save-edit">Save</button>
     <button class="btn btn-sm btn-secondary cancel-edit">Cancel</button>`;
-  td[17].querySelector('.save-edit').addEventListener('click', async () => {
+  td[14].querySelector('.save-edit').addEventListener('click', async () => {
   const updated = {};
   const set = (key, val) => {
     if (val !== '') updated[key] = val;
@@ -421,9 +429,10 @@ function enableEditMode(row, entry) {
   set('Industry', td[8].querySelector('input').value);
   set('Description', td[9].querySelector('textarea').value);
   set('ApplicationDeadline', td[10].querySelector('input').value);
-  set('Internal_x002f_External', td[12].querySelector('select').value);
-  set('AssignedEmployee', td[13].querySelector('select').selectedOptions[0].textContent);
-  set('Notes', td[15].querySelector('textarea').value);
+  set('Internal_x002f_External', td[11].querySelector('select').value);
+set('AssignedEmployee',        td[12].querySelector('select').value);
+set('Notes',                   td[13].querySelector('textarea').value);
+
 
   try {
     const token = await getToken(['Sites.ReadWrite.All']);
@@ -487,7 +496,7 @@ if (assignedEmail && assignedEmail.includes('@')) {
   }
 });
 
-  td[16].querySelector('.cancel-edit').addEventListener('click', () => {
+  td[14].querySelector('.cancel-edit').addEventListener('click', () => {
     renderList(); // revert the table
   });
 }
