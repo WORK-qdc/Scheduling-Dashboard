@@ -429,6 +429,7 @@ function enableEditMode(row, entry) {
       const token = await getToken(['Sites.ReadWrite.All']);
       const g = client(token);
       const sid = await getSiteId(g);
+      console.log('PATCH payload:', updated);
       await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
         .patch(updated);
       await fetchEntries();
