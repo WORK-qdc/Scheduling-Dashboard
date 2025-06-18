@@ -172,7 +172,8 @@
           id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
-          applicationdeadline: i.fields.ApplicationDeadline, internalExternal: i.fields.Internal_x002f_External,
+          applicationdeadline: i.fields.ApplicationDeadline, internalExternal: i.fields.Internal_x002f_External, AssignedEmployee: i.fields.AssignedEmployee,
+  Notes: i.fields.Notes
         }));
         renderList();
       }
@@ -349,7 +350,6 @@ function renderCalendarView() {
       <td>${e.industry}</td>
       <td>${e.desc}</td>
       <td>${e.applicationdeadline}</td>
-      <td>${e.deliver}</td>
       <td>${e.internalExternal}</td>
       <td>${dn}</td>
       <td>${e.notes}</td>
@@ -398,13 +398,10 @@ function enableEditMode(row, entry) {
   td[8].innerHTML = `<input class="form-control form-control-sm" value="${entry.industry || ''}" />`;
   td[9].innerHTML = `<textarea class="form-control form-control-sm">${entry.desc || ''}</textarea>`;
   td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.applicationdeadline)}" />`;
-  td[11].innerHTML = `<textarea class="form-control form-control-sm">${entry.deliver || ''}</textarea>`;
-  td[12].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
+  td[11].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
   td[12].querySelector('select').value = entry.type || 'Internal';
-  td[14].innerHTML = `
-    <select class="form-select form-select-sm">
-      ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`).join('')}
-    </select>`;
+  td[13].innerHTML = `<select class="form-select form-select-sm"> ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`).join('')} </select>`;
+
 
   td[15].innerHTML = `<textarea class="form-control form-control-sm">${entry.notes || ''}</textarea>`;
 
