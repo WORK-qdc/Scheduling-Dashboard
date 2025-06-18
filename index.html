@@ -378,6 +378,10 @@ function renderCalendarView() {
     tbody.appendChild(tr);
   });
 }
+      function formatDateOnly(isoString) {
+  if (!isoString || typeof isoString !== 'string') return '';
+  return isoString.split('T')[0];
+}
 function enableEditMode(row, entry) {
   const fields = [
     'title', 'topic', 'status', 'start', 'end',
@@ -389,13 +393,13 @@ function enableEditMode(row, entry) {
   td[1].innerHTML = `<input class="form-control form-control-sm" value="${entry.title || ''}" />`;
   td[2].innerHTML = `<input class="form-control form-control-sm" value="${entry.topic || ''}" />`;
   td[3].innerHTML = `<input class="form-control form-control-sm" value="${entry.status || ''}" />`;
-  td[4].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.start || ''}" />`;
-  td[5].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.end || ''}" />`;
+  td[4].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.start)}" />`;
+  td[5].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.end)}" />`;
   td[6].innerHTML = `<input class="form-control form-control-sm" value="${entry.location || ''}" />`;
   td[7].innerHTML = `<input class="form-control form-control-sm" value="${entry.link || ''}" />`;
   td[8].innerHTML = `<input class="form-control form-control-sm" value="${entry.industry || ''}" />`;
   td[9].innerHTML = `<textarea class="form-control form-control-sm">${entry.desc || ''}</textarea>`;
-  td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.applicationdeadline || ''}" />`;
+  td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${formatDateOnly(entry.applicationdeadline)}" />`;
   td[11].innerHTML = `<textarea class="form-control form-control-sm">${entry.deliver || ''}</textarea>`;
   td[12].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
   td[12].querySelector('select').value = entry.type || 'Internal';
