@@ -52,7 +52,7 @@
           <tr>
             <th></th><th>Title</th><th>Topic</th><th>Status</th><th>Start</th><th>End</th>
             <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>ApplicationDeadline</th>
-            <th>Deliverables</th><th>Internal/External</th><th>Recommended Employee</th>
+            <th>Internal/External</th>
             <th>Assigned Employee <button type="button" id="edit-employees-btn" class="btn btn-sm btn-outline-secondary ms-2">Manage Employees</button></th>
             <th>Notes</th><th>Actions</th>
           </tr>
@@ -73,7 +73,6 @@
             <td><input id="new-applicationdeadline" type="date" class="form-control form-control-sm" /></td>
             <td><textarea id="new-deliver" rows="1" class="form-control form-control-sm" placeholder="Deliverables"></textarea></td>
             <td><select id="new-type" class="form-select form-select-sm"><option>Internal</option><option>External</option></select></td>
-            <td><input id="new-RecommendedEmployee" class="form-control form-control-sm" placeholder="Employee" /></td>
             <td><select id="new-AssignedEmployee" class="form-select form-select-sm"><option value="">--Select--</option></select></td>
             <td><textarea id="new-notes" rows="1" class="form-control form-control-sm" placeholder="Notes"></textarea></td>
             <td><button type="button" id="add-entry-btn" class="btn btn-primary btn-sm">Add</button></td>
@@ -175,7 +174,6 @@
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
           applicationdeadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, internalExternal: i.fields.Internal_x002f_External,
-          RecommendedEmployee: i.fields.RecommendedEmployee, AssignedEmployee: i.fields.AssignedEmployee, notes: i.fields.Notes
         }));
         renderList();
       }
@@ -217,7 +215,6 @@
       ApplicationDeadline:       document.getElementById('new-applicationdeadline').value,
       Deliverables:              document.getElementById('new-deliver').value,
       Internal_x002f_External:   document.getElementById('new-internal/external').value,
-      RecommendedEmployee:       document.getElementById('new-RecommendedEmployee').value,
       AssignedEmployee:          assignedEmployeeName,  // ✅ Name saved
       Notes:                     document.getElementById('new-notes').value
     };
@@ -356,7 +353,6 @@ function renderCalendarView() {
       <td>${e.applicationdeadline}</td>
       <td>${e.deliver}</td>
       <td>${e.internalExternal}</td>
-      <td>${e.RecommendedEmployee}</td>
       <td>${dn}</td>
       <td>${e.notes}</td>
       <td>
@@ -390,7 +386,7 @@ function enableEditMode(row, entry) {
   const fields = [
     'title', 'topic', 'status', 'start', 'end',
     'location', 'link', 'industry', 'desc',
-    'applicationdeadline', 'deliver', 'internal/external', 'RecommendedEmployee', 'AssignedEmployee', 'notes'
+    'applicationdeadline', 'deliver', 'internal/external', 'AssignedEmployee', 'notes'
   ];
 
   const td = row.querySelectorAll('td');
@@ -407,8 +403,6 @@ function enableEditMode(row, entry) {
   td[11].innerHTML = `<textarea class="form-control form-control-sm">${entry.deliver || ''}</textarea>`;
   td[12].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
   td[12].querySelector('select').value = entry.type || 'Internal';
-  td[13].innerHTML = `<input class="form-control form-control-sm" value="${entry.RecommendedEmployee || ''}" />`;
-
   td[14].innerHTML = `
     <select class="form-select form-select-sm">
       ${window.employees.map(e => `<option value="${e.email}" ${e.email === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`).join('')}
@@ -438,7 +432,6 @@ function enableEditMode(row, entry) {
   set('ApplicationDeadline', td[10].querySelector('input').value);
   set('Deliverables', td[11].querySelector('textarea').value);
   set('Internal_x002f_External', td[12].querySelector('select').value);
-  set('RecommendedEmployee', td[13].querySelector('input').value);
   set('AssignedEmployee', td[14].querySelector('select').selectedOptions[0].textContent);
   set('Notes', td[15].querySelector('textarea').value);
 
