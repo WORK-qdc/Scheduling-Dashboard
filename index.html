@@ -413,22 +413,26 @@ function enableEditMode(row, entry) {
     <button class="btn btn-sm btn-secondary cancel-edit">Cancel</button>`;
 
   td[16].querySelector('.save-edit').addEventListener('click', async () => {
-    const updated = {
-  Title: td[1].querySelector('input').value,
-  Topic: td[2].querySelector('input').value,
-  RegistrationStatus: td[3].querySelector('input').value,
-  StartDate: td[4].querySelector('input').value,
-  EndDate: td[5].querySelector('input').value,
-  Location: td[6].querySelector('input').value,
-  Link: td[7].querySelector('input').value,
-  Industry: td[8].querySelector('input').value,
-  Description: td[9].querySelector('textarea').value,
-  ApplicationDeadline: td[10].querySelector('input').value,
-  Deliverables: td[11].querySelector('textarea').value,
-  Internal_x002f_External: td[12].querySelector('select').value,
-  RecommendedEmployee: td[13].querySelector('input').value,
-  AssignedEmployee: td[14].querySelector('select').value,
-  Notes: td[15].querySelector('textarea').value
+    const updated = {};
+function setIfFilled(key, value) {
+  if (value !== '') updated[key] = value;
+}
+
+setIfFilled('Title', td[1].querySelector('input').value);
+setIfFilled('Topic', td[2].querySelector('input').value);
+setIfFilled('RegistrationStatus', td[3].querySelector('input').value);
+setIfFilled('StartDate', td[4].querySelector('input').value);
+setIfFilled('EndDate', td[5].querySelector('input').value);
+setIfFilled('Location', td[6].querySelector('input').value);
+setIfFilled('Link', td[7].querySelector('input').value);
+setIfFilled('Industry', td[8].querySelector('input').value);
+setIfFilled('Description', td[9].querySelector('textarea').value);
+setIfFilled('ApplicationDeadline', td[10].querySelector('input').value);
+setIfFilled('Deliverables', td[11].querySelector('textarea').value);
+setIfFilled('Internal_x002f_External', td[12].querySelector('select').value);
+setIfFilled('RecommendedEmployee', td[13].querySelector('input').value);
+setIfFilled('AssignedEmployee', td[14].querySelector('select').value);
+setIfFilled('Notes', td[15].querySelector('textarea').value);
 };
 
 
