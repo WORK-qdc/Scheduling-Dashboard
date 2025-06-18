@@ -218,7 +218,12 @@
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
     // Send calendar invite to assigned employee
-if (fields.AssignedEmployee) {
+if (fields.AssignedEmployee && fields.AssignedEmployee.includes('@')) {
+  const sel = document.getElementById('new-AssignedEmployee');
+  const selectedOption = sel.options[sel.selectedIndex];
+  const email = selectedOption.value;
+  const name = selectedOption.getAttribute('data-name') || email;
+
   const event = {
     subject: fields.Title || 'Scheduled Event',
     body: {
@@ -239,13 +244,15 @@ if (fields.AssignedEmployee) {
     attendees: [
       {
         emailAddress: {
-          address: fields.AssignedEmployee,
-          name: fields.AssignedEmployee
+          address: email,
+          name: name
         },
         type: 'required'
       }
     ]
   };
+
+  console.log('Event to send:', JSON.stringify(event, null, 2)); // Optional debug log
 
   try {
     await g.api('/me/events').post(event);
