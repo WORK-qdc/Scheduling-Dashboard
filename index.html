@@ -51,7 +51,7 @@
         <thead class="table-light">
           <tr>
             <th></th><th>Title</th><th>Topic</th><th>Status</th><th>Start</th><th>End</th>
-            <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>Deadline</th>
+            <th>Location</th><th>Link</th><th>Industry</th><th>Description</th><th>applicationdeadline</th>
             <th>Deliverables</th><th>Type</th><th>Reco. Emp.</th>
             <th>Assigned Emp. <button type="button" id="edit-employees-btn" class="btn btn-sm btn-outline-secondary ms-2">Manage Employees</button></th>
             <th>Notes</th><th>Actions</th>
@@ -70,7 +70,7 @@
             <td><input id="new-link" type="url" class="form-control form-control-sm" placeholder="http://…" /></td>
             <td><input id="new-industry" class="form-control form-control-sm" placeholder="Industry" /></td>
             <td><textarea id="new-desc" rows="1" class="form-control form-control-sm" placeholder="Description"></textarea></td>
-            <td><input id="new-deadline" type="date" class="form-control form-control-sm" /></td>
+            <td><input id="new-applicationdeadline" type="date" class="form-control form-control-sm" /></td>
             <td><textarea id="new-deliver" rows="1" class="form-control form-control-sm" placeholder="Deliverables"></textarea></td>
             <td><select id="new-type" class="form-select form-select-sm"><option>Internal</option><option>External</option></select></td>
             <td><input id="new-reco" class="form-control form-control-sm" placeholder="Employee" /></td>
@@ -174,7 +174,7 @@
           id: i.id, title: i.fields.Title, topic: i.fields.Topic, status: i.fields.RegistrationStatus,
           start: i.fields.StartDate, end: i.fields.EndDate, location: i.fields.Location,
           link: i.fields.Link, industry: i.fields.Industry, desc: i.fields.Description,
-          deadline: i.fields.ApplicationDeadline, deliver: i.fields.Deliverables, type: i.fields.Type,
+          applicationdeadline: i.fields.Applicationapplicationdeadline, deliver: i.fields.Deliverables, type: i.fields.Type,
           reco: i.fields.RecoEmp, assigned: i.fields.AssignedEmp, notes: i.fields.Notes
         }));
         renderList();
@@ -208,7 +208,7 @@
       Link:                      document.getElementById('new-link').value,
       Industry:                  document.getElementById('new-industry').value,
       Description:               document.getElementById('new-desc').value,
-      ApplicationDeadline:       document.getElementById('new-deadline').value,
+      Applicationapplicationdeadline:       document.getElementById('new-applicationdeadline').value,
       Deliverables:              document.getElementById('new-deliver').value,
       Internal_x002f_External:   document.getElementById('new-type').value,
       RecommendedEmployee:       document.getElementById('new-reco').value,
@@ -342,7 +342,7 @@ function renderCalendarView() {
       <td><a href="${e.link}" target="_blank">link</a></td>
       <td>${e.industry}</td>
       <td>${e.desc}</td>
-      <td>${e.deadline}</td>
+      <td>${e.applicationdeadline}</td>
       <td>${e.deliver}</td>
       <td>${e.type}</td>
       <td>${e.reco}</td>
@@ -375,7 +375,7 @@ function enableEditMode(row, entry) {
   const fields = [
     'title', 'topic', 'status', 'start', 'end',
     'location', 'link', 'industry', 'desc',
-    'deadline', 'deliver', 'type', 'reco', 'assigned', 'notes'
+    'applicationdeadline', 'deliver', 'type', 'reco', 'assigned', 'notes'
   ];
 
   const td = row.querySelectorAll('td');
@@ -388,7 +388,7 @@ function enableEditMode(row, entry) {
   td[7].innerHTML = `<input class="form-control form-control-sm" value="${entry.link || ''}" />`;
   td[8].innerHTML = `<input class="form-control form-control-sm" value="${entry.industry || ''}" />`;
   td[9].innerHTML = `<textarea class="form-control form-control-sm">${entry.desc || ''}</textarea>`;
-  td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.deadline || ''}" />`;
+  td[10].innerHTML = `<input type="date" class="form-control form-control-sm" value="${entry.applicationdeadline || ''}" />`;
   td[11].innerHTML = `<textarea class="form-control form-control-sm">${entry.deliver || ''}</textarea>`;
   td[12].innerHTML = `<select class="form-select form-select-sm"><option>Internal</option><option>External</option></select>`;
   td[12].querySelector('select').value = entry.type || 'Internal';
@@ -416,7 +416,7 @@ function enableEditMode(row, entry) {
   Link: td[7].querySelector('input').value,
   Industry: td[8].querySelector('input').value,
   Description: td[9].querySelector('textarea').value,
-  ApplicationDeadline: td[10].querySelector('input').value,
+  Applicationapplicationdeadline: td[10].querySelector('input').value,
   Deliverables: td[11].querySelector('textarea').value,
   Type: td[12].querySelector('select').value,
   RecoEmp: td[13].querySelector('input').value,
