@@ -569,21 +569,43 @@ if (assignedEmail && assignedEmail.includes('@')) {
         new bootstrap.Modal(document.getElementById('employeeModal')).show()
       );
       document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
-      document.getElementById('add-entry-btn').addEventListener('click', addEntry);
+            try {
+        await initLists();
+        await fetchEmployees();
+        await fetchEntries();
 
-      try {
-  await initLists();
-  await fetchEmployees();
-  await fetchEntries();
-
-  // 🔁 Add this line to bind the filter change event
-  document.getElementById('employee-filter').addEventListener('change', applyEmployeeFilter);
+        document.getElementById('employee-filter').addEventListener('change', applyEmployeeFilter);
         document.getElementById('calendar-employee-filter').addEventListener('change', renderCalendarView);
-} catch (err) {
-  console.error('Initialization error:', err);
-  alert(`Initialization error:\n${err.message}`);
-}
-    });
+      } catch (err) {
+        console.error('Initialization error:', err);
+        alert(`Initialization error:\n${err.message}`);
+      }
+
+      document.getElementById('calendar-view-btn').addEventListener('click', () => {
+        document.getElementById('calendar-container').style.display = 'block';
+        document.getElementById('list-container').style.display = 'none';
+        document.getElementById('calendar-view-btn').classList.add('d-none');
+        document.getElementById('list-view-btn').classList.remove('d-none');
+        renderCalendarView();
+      });
+
+      document.getElementById('list-view-btn').addEventListener('click', () => {
+        document.getElementById('calendar-container').style.display = 'none';
+        document.getElementById('list-container').style.display = 'block';
+        document.getElementById('calendar-view-btn').classList.remove('d-none');
+        document.getElementById('list-view-btn').classList.add('d-none');
+      });
+
+      document.getElementById('calendar-list-view-btn').addEventListener('click', () =>
+        document.getElementById('list-view-btn').click()
+      );
+      document.getElementById('edit-employees-btn').addEventListener('click', () =>
+        new bootstrap.Modal(document.getElementById('employeeModal')).show()
+      );
+      document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
+      document.getElementById('add-entry-btn').addEventListener('click', addEntry);
+    }); // CLOSES DOMContentLoaded
+
   </script>
 </body>
 </html>
