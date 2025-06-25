@@ -390,9 +390,16 @@ if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
         notes: e.notes
       }
     }));
+const selectedMonth = document.getElementById('start-date-filter').value;
+let initialDate = new Date(); // default to today
 
+if (selectedMonth) {
+  const [year, month] = selectedMonth.split('-').map(Number);
+  initialDate = new Date(year, month - 1); // JS months are 0-based
+}
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
+    initialDate: initialDate,
     height: 'auto',
     headerToolbar: {
       left: 'prev,next today',
@@ -413,7 +420,20 @@ if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
       function renderList() {
   const tbody = document.getElementById('entries-tbody');
   tbody.innerHTML = '';
-  window.entries.forEach(e => {
+  const selectedMonth = document.getElementById('start-date-filter').value; // format: "YYYY-MM"
+
+const filteredEntries = window.entries.filter(e => {
+  if (!selectedMonth || !e.start) return true;
+
+  const [year, month] = selectedMonth.split('-').map(Number);
+  const entryDate = new Date(e.start);
+  const entryYear = entryDate.getFullYear();
+  const entryMonth = entryDate.getMonth() + 1;
+
+  return entryYear > year || (entryYear === year && entryMonth >= month);
+});
+
+filteredEntries.forEach(e => {
     const dn = e.AssignedEmployee || '(Unassigned)';
     const tr = document.createElement('tr');
 
@@ -616,6 +636,7 @@ if (assignedEmail && assignedEmail.includes('@')) {
         await fetchEntries();
 
         document.getElementById('employee-filter').addEventListener('change', applyEmployeeFilter);
+              document.getElementById('start-date-filter').addEventListener('change', renderList);
         document.getElementById('calendar-employee-filter').addEventListener('change', renderCalendarView);
       } catch (err) {
         console.error('Initialization error:', err);
