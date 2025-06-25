@@ -41,6 +41,9 @@
       <div id="calendar-table-wrapper" class="card-body p-3 overflow-auto"></div>
     </div>
 <div id="calendar-container" class="card mt-4">
+  <div class="d-flex justify-content-end mb-3">
+  <button type="button" id="calendar-list-view-btn" class="btn btn-outline-secondary btn-sm">← Back to List</button>
+</div>
   <div class="card-body" id="calendar-table-wrapper"></div>
 </div>
     <div id="list-container" class="table-responsive">
@@ -559,9 +562,7 @@ if (assignedEmail && assignedEmail.includes('@')) {
         document.getElementById('calendar-view-btn').classList.remove('d-none');
         document.getElementById('list-view-btn').classList.add('d-none');
       });
-      document.getElementById('calendar-list-view-btn').addEventListener('click', () =>
-        document.getElementById('list-view-btn').click()
-      );
+    
       document.getElementById('edit-employees-btn').addEventListener('click', () =>
         new bootstrap.Modal(document.getElementById('employeeModal')).show()
       );
