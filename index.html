@@ -76,8 +76,7 @@
     <th>Topic</th>
     <th>Status</th>
     <th>
-      Start                   <!-- ← now a wrapper -->
-      <!-- Month-Year picker for filtering & calendar initialDate -->
+      Start
       <input
         id="start-date-filter"
         type="month"
@@ -87,7 +86,28 @@
     <th>End</th>
     <th>Location</th>
     <th>Link</th>
-    <!-- etc... -->
+    <th>Industry</th>
+    <th>Description</th>
+    <th>ApplicationDeadline</th>
+    <th>Internal/External</th>
+    <th>
+      Turner Speaker
+      <button
+        type="button"
+        id="edit-employees-btn"
+        class="btn btn-sm btn-outline-secondary ms-2"
+      >
+        Manage Employees
+      </button>
+      <select
+        id="employee-filter"
+        class="form-select form-select-sm mt-2"
+      >
+        <option value="">All</option>
+      </select>
+    </th>
+    <th>Notes</th>
+    <th>Actions</th>
   </tr>
 </thead>
         <tbody id="entries-tbody"></tbody>
