@@ -32,6 +32,14 @@
     <h1 class="mb-4 text-center">Scheduling Tool</h1>
 
     <div id="view-switch" class="mb-3 text-center">
+      <div class="mb-3 row justify-content-end">
+  <label class="col-auto col-form-label">Filter by Turner Speaker:</label>
+  <div class="col-auto">
+    <select id="employee-filter" class="form-select form-select-sm">
+      <option value="">All</option>
+    </select>
+  </div>
+</div>
       <div class="btn-group" role="group">
         <button type="button" id="calendar-view-btn" class="btn btn-primary">Calendar View</button>
         <button type="button" id="list-view-btn" class="btn btn-secondary d-none">List View</button>
@@ -270,15 +278,24 @@ if (assignedEmployeeEmail && assignedEmployeeEmail.includes('@')) {
   }
 }
       function populateEmployeeSelects() {
-        const sel = document.getElementById('new-AssignedEmployee');
-        sel.innerHTML = '<option value="">--Select--</option>';
-        window.employees.forEach(e => {
-          const o = document.createElement('option');
-          o.value = e.name;
-          o.textContent = e.name;
-          sel.appendChild(o);
-        });
-      }
+  const sel = document.getElementById('new-AssignedEmployee');
+  const filterSel = document.getElementById('employee-filter');
+
+  sel.innerHTML = '<option value="">--Select--</option>';
+  filterSel.innerHTML = '<option value="">All</option>';
+
+  window.employees.forEach(e => {
+    const o1 = document.createElement('option');
+    o1.value = e.name;
+    o1.textContent = e.name;
+    sel.appendChild(o1);
+
+    const o2 = document.createElement('option');
+    o2.value = e.name;
+    o2.textContent = e.name;
+    filterSel.appendChild(o2);
+  });
+}
 
       function renderEmployeeTable() {
         const body = document.getElementById('employee-table-body');
@@ -373,9 +390,20 @@ function renderCalendarView() {
       enableEditMode(tr, e);
     });
 
-    tbody.appendChild(tr);
+        tbody.appendChild(tr);
+  });
+  applyEmployeeFilter(); // <-- This applies the filter after rendering
+}
+
+function applyEmployeeFilter() {
+  const selected = document.getElementById('employee-filter').value;
+  const rows = document.querySelectorAll('#entries-tbody tr');
+  rows.forEach(row => {
+    const cellText = row.children[12]?.textContent || '';
+    row.style.display = (!selected || cellText === selected) ? '' : 'none';
   });
 }
+
       function formatDateOnly(isoString) {
   if (!isoString || typeof isoString !== 'string') return '';
   return isoString.split('T')[0];
@@ -525,13 +553,17 @@ if (assignedEmail && assignedEmail.includes('@')) {
       document.getElementById('add-entry-btn').addEventListener('click', addEntry);
 
       try {
-        await initLists();
-        await fetchEmployees();
-        await fetchEntries();
-      } catch (err) {
-        console.error('Initialization error:', err);
-        alert(`Initialization error:\n${err.message}`);
-      }
+  await initLists();
+  await fetchEmployees();
+  await fetchEntries();
+
+  // 🔁 Add this line to bind the filter change event
+  document.getElementById('employee-filter').addEventListener('change', applyEmployeeFilter);
+
+} catch (err) {
+  console.error('Initialization error:', err);
+  alert(`Initialization error:\n${err.message}`);
+}
     });
   </script>
 </body>
