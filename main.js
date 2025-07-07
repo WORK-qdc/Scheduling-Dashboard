@@ -240,27 +240,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function populateEmployeeSelects() {
-    const sel = document.getElementById('new-AssignedEmployee');
-    const filterSel = document.getElementById('employee-filter');
-    const calSel = document.getElementById('calendar-employee-filter');
+  const sel        = document.getElementById('new-AssignedEmployee');
+  const filterSel  = document.getElementById('employee-filter');
+  const calSel     = document.getElementById('calendar-employee-filter');
 
-    sel.innerHTML = '<option value="">Select Speaker</option>';
-    filterSel.innerHTML = '<option value="">All Speakers</option>';
-    calSel.innerHTML = '<option value="">All Speakers</option>';
+  // Only reset the ones that are on this page:
+  if (sel)       sel.innerHTML       = '<option value="">Select Speaker</option>';
+  if (filterSel) filterSel.innerHTML = '<option value="">All Speakers</option>';
+  if (calSel)    calSel.innerHTML    = '<option value="">All Speakers</option>';
 
-    window.employees.forEach(e => {
+  window.employees.forEach(e => {
+    if (sel) {
       const o1 = document.createElement('option');
-      o1.value = e.name;
+      o1.value       = e.name;
       o1.textContent = e.name;
       sel.appendChild(o1);
-
-      const o2 = o1.cloneNode(true);
+    }
+    if (filterSel) {
+      const o2 = document.createElement('option');
+      o2.value       = e.name;
+      o2.textContent = e.name;
       filterSel.appendChild(o2);
-
-      const o3 = o1.cloneNode(true);
+    }
+    if (calSel) {
+      const o3 = document.createElement('option');
+      o3.value       = e.name;
+      o3.textContent = e.name;
       calSel.appendChild(o3);
-    });
-  }
+    }
+  });
+}
 
   function renderEmployeeTable() {
     const body = document.getElementById('employee-table-body');
