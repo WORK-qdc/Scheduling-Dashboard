@@ -42,20 +42,36 @@
     <!-- List View -->
     <div id="list-container" class="main-card">
       <!-- Filter Bar -->
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label>Employee</label>
-          <select id="employee-filter" class="form-select">
-            <option value="">All Employees</option>
-          </select>
+      <div class="filter-bar d-flex align-items-center">
+        <div class="dropdown">
+          <button
+            class="btn btn-outline-primary dropdown-toggle"
+            type="button"
+            id="filtersDropdownBtn"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-funnel me-1"></i> Filters
+          </button>
+          <div class="dropdown-menu p-3" aria-labelledby="filtersDropdownBtn" style="min-width: 220px;">
+            <!-- Employee filter -->
+            <div class="filter-group mb-2">
+              <label class="mb-1">Employee</label>
+              <select id="employee-filter" class="form-select">
+                <option value="">All Employees</option>
+              </select>
+            </div>
+            <!-- Month filter -->
+            <div class="filter-group">
+              <label class="mb-1">Month</label>
+              <input id="start-date-filter" type="month" class="form-control" />
+            </div>
+          </div>
         </div>
-        <div class="filter-group">
-          <label>Month</label>
-          <input id="start-date-filter" type="month" class="form-control" />
-        </div>
-        <div class="filter-group ms-auto">
+        <!-- Manage Employees button -->
+        <div class="ms-auto">
           <button type="button" id="edit-employees-btn" class="btn-manage">
-            <i class="bi bi-people me-2"></i>Manage Employees
+            <i class="bi bi-people me-2"></i> Manage Employees
           </button>
         </div>
       </div>
@@ -134,16 +150,29 @@
 
     <!-- Calendar View -->
     <div id="calendar-container" class="main-card" style="display: none;">
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label>Employee</label>
-          <select id="calendar-employee-filter" class="form-select">
-            <option value="">All Employees</option>
-          </select>
+      <div class="filter-bar d-flex align-items-center">
+        <div class="dropdown">
+          <button
+            class="btn btn-outline-primary dropdown-toggle"
+            type="button"
+            id="calFiltersDropdownBtn"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-funnel me-1"></i> Filters
+          </button>
+          <div class="dropdown-menu p-3" aria-labelledby="calFiltersDropdownBtn" style="min-width: 220px;">
+            <div class="filter-group">
+              <label class="mb-1">Employee</label>
+              <select id="calendar-employee-filter" class="form-select">
+                <option value="">All Employees</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="filter-group ms-auto">
+        <div class="ms-auto">
           <button type="button" id="calendar-list-view-btn" class="btn-manage">
-            <i class="bi bi-arrow-left me-2"></i>Back to List
+            <i class="bi bi-arrow-left me-2"></i> Back to List
           </button>
         </div>
       </div>
