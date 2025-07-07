@@ -1,3 +1,4 @@
+/* style.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -146,6 +147,21 @@ body {
   min-width: 150px;
 }
 
+/* NEW: Search‐bar styling */
+.search-bar .form-control {
+  min-width: 200px;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  background: white;
+  box-shadow: var(--shadow-soft);
+  border: none;
+}
+.search-bar .form-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.25);
+}
+
 /* Modern Table */
 .modern-table {
   border-collapse: separate;
@@ -225,7 +241,7 @@ body {
   padding: 0.25rem 0.75rem;
   border-radius: 50px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 500;  
   display: inline-block;
 }
 
@@ -475,7 +491,7 @@ body {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-group {
     width: 100%;
     justify-content: space-between;
