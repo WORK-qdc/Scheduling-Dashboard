@@ -1,0 +1,22 @@
+/* paste everything you had inside <style>…</style> here */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #5E72E4;
+  /* …all your other CSS variables… */
+  --shadow-lg: 0 15px 35px rgba(50, 50, 93, .1), 0 5px 15px rgba(0, 0, 0, .07);
+}
+
+/* Global resets */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+/* …and the rest of your CSS rules… */
+.tooltip-custom {
+  background: var(--gray-800);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow-lg);
+}
