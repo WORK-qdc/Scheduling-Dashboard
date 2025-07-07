@@ -1,39 +1,65 @@
 // js/events.js
-import { initLists, fetchEmployees, fetchEntries, addEmployee, addEntry } from './graphService.js';
-import * as ui    from './ui.js';
+
+import { addEmployee, addEntry } from './graphService.js';
+import * as ui from './ui.js';
 
 export function bindUI() {
-  document.getElementById('add-emp-btn')
+  // Open Employee Management modal
+  document
+    .getElementById('edit-employees-btn')
+    .addEventListener('click', () => {
+      new bootstrap.Modal(document.getElementById('employeeModal')).show();
+    });
+
+  // Add a new employee
+  document
+    .getElementById('add-emp-btn')
     .addEventListener('click', addEmployee);
 
-  document.getElementById('add-entry-btn')
+  // Add a new conference entry
+  document
+    .getElementById('add-entry-btn')
     .addEventListener('click', addEntry);
 
-  document.getElementById('list-view-btn')
+  // Switch to List View
+  document
+    .getElementById('list-view-btn')
     .addEventListener('click', () => {
+      document.getElementById('calendar-view-btn').classList.remove('active');
+      document.getElementById('list-view-btn').classList.add('active');
       document.getElementById('calendar-container').style.display = 'none';
       document.getElementById('list-container').style.display     = 'block';
     });
 
-  document.getElementById('calendar-view-btn')
+  // Switch to Calendar View
+  document
+    .getElementById('calendar-view-btn')
     .addEventListener('click', () => {
+      document.getElementById('list-view-btn').classList.remove('active');
+      document.getElementById('calendar-view-btn').classList.add('active');
       document.getElementById('list-container').style.display     = 'none';
       document.getElementById('calendar-container').style.display = 'block';
       ui.renderCalendarView();
     });
 
-  document.getElementById('calendar-list-view-btn')
-    .addEventListener('click', ()=> document.getElementById('list-view-btn').click());
+  // Back to List from Calendar
+  document
+    .getElementById('calendar-list-view-btn')
+    .addEventListener('click', () => {
+      document.getElementById('list-view-btn').click();
+    });
 
-  document.getElementById('employee-filter')
+  // Filters in List View
+  document
+    .getElementById('employee-filter')
     .addEventListener('change', ui.applyFilters);
 
-  document.getElementById('start-date-filter')
+  document
+    .getElementById('start-date-filter')
     .addEventListener('change', ui.applyFilters);
 
-  document.getElementById('calendar-employee-filter')
+  // Filter in Calendar View
+  document
+    .getElementById('calendar-employee-filter')
     .addEventListener('change', ui.renderCalendarView);
-
-  document.getElementById('edit-employees-btn')
-    .addEventListener('click', ()=> new bootstrap.Modal(document.getElementById('employeeModal')).show());
 }
