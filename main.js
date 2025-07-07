@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           showLoading();
           const token = await getToken(['Sites.ReadWrite.All']);
           const g = client(token);
-          const sid = await getSiteId(g
+          const sid = await getSiteId(g)
 
       await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
           await fetchEntries();
