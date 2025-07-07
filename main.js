@@ -214,8 +214,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const calSel = document.getElementById('calendar-employee-filter');
 
     sel.innerHTML = '<option value="">Select Speaker</option>';
-    filterSel.innerHTML = '<option value="">All Employees</option>';
-    calSel.innerHTML = '<option value="">All Employees</option>';
+    filterSel.innerHTML = '<option value="">All Speakers</option>';
+calSel.innerHTML    = '<option value="">All Speakers</option>';
 
     window.employees.forEach(e => {
       const o1 = document.createElement('option');
