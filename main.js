@@ -1,3 +1,5 @@
+// main.js
+
 // Loading indicator
 function showLoading() {
   document.getElementById('loading-bar').classList.add('active');
@@ -65,7 +67,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const g = client(token);
     const sid = await getSiteId(g);
     const r = await g.api(`/sites/${sid}/lists/${EMP_LIST_ID}/items`).expand('fields').get();
-    window.employees = r.value.map(i => ({ id: i.id, name: i.fields.Title, email: i.fields.Employeesemail }));
+    window.employees = r.value.map(i => ({
+      id: i.id,
+      name: i.fields.Title,
+      email: i.fields.Employeesemail
+    }));
     populateEmployeeSelects();
     renderEmployeeTable();
     hideLoading();
@@ -105,7 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = await getToken(['Sites.ReadWrite.All']);
     const g = client(token);
     const sid = await getSiteId(g);
-    await g.api(`/sites/${sid}/lists/${EMP_LIST_ID}/items`).post({ fields: { Title: name, Employeesemail: email } });
+    await g.api(`/sites/${sid}/lists/${EMP_LIST_ID}/items`).post({
+      fields: { Title: name, Employeesemail: email }
+    });
     await fetchEmployees();
   }
 
@@ -117,25 +125,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       const sid = await getSiteId(g);
 
       const sel = document.getElementById('new-AssignedEmployee');
-      const selectedOption = sel.options[sel.selectedIndex];
-      const assignedEmployeeName = selectedOption.value;
+      const assignedEmployeeName = sel.value;
       const assignedEmployeeEmail = (window.employees.find(e => e.name === assignedEmployeeName) || {}).email;
 
       const fields = {
-        Title: document.getElementById('new-title').value,
-        Topic: document.getElementById('new-topic').value,
+        Title:       document.getElementById('new-title').value,
+        Topic:       document.getElementById('new-topic').value,
         RegistrationStatus: document.getElementById('new-status').value,
-        TypeofEngagement: document.getElementById('new-type').value,
-        StartDate: document.getElementById('new-start').value,
-        EndDate: document.getElementById('new-end').value,
-        Location: document.getElementById('new-location').value,
-        Link: document.getElementById('new-link').value,
-        Industry: document.getElementById('new-industry').value,
+        TypeofEngagement:   document.getElementById('new-type').value,
+        StartDate:   document.getElementById('new-start').value,
+        EndDate:     document.getElementById('new-end').value,
+        Location:    document.getElementById('new-location').value,
+        Link:        document.getElementById('new-link').value,
+        Industry:    document.getElementById('new-industry').value,
         Description: document.getElementById('new-desc').value,
         ApplicationDeadline: document.getElementById('new-applicationdeadline').value,
         Internal_x002f_External: document.getElementById('new-type').value,
         AssignedEmployee: assignedEmployeeName,
-        Notes: document.getElementById('new-notes').value
+        Notes:       document.getElementById('new-notes').value
       };
 
       await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
@@ -156,9 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             dateTime: `${fields.EndDate}T17:00:00`,
             timeZone: 'UTC'
           },
-          location: {
-            displayName: fields.Location || 'TBD'
-          },
+          location: { displayName: fields.Location || 'TBD' },
           attendees: [
             {
               emailAddress: {
@@ -173,9 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-          await g.api('/me/events')
-            .query({ sendInvitations: true })
-            .post(event);
+          await g.api('/me/events').query({ sendInvitations: true }).post(event);
           console.log('✅ Calendar invite sent to:', assignedEmployeeEmail);
         } catch (inviteErr) {
           console.error('❌ Failed to send calendar invite:', inviteErr);
@@ -209,17 +212,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function populateEmployeeSelects() {
-    const sel = document.getElementById('new-AssignedEmployee');
+    const sel       = document.getElementById('new-AssignedEmployee');
     const filterSel = document.getElementById('employee-filter');
-    const calSel = document.getElementById('calendar-employee-filter');
+    const calSel    = document.getElementById('calendar-employee-filter');
 
-    sel.innerHTML = '<option value="">Select Speaker</option>';
+    sel.innerHTML       = '<option value="">Select Speaker</option>';
     filterSel.innerHTML = '<option value="">All Speakers</option>';
-calSel.innerHTML    = '<option value="">All Speakers</option>';
+    calSel.innerHTML    = '<option value="">All Speakers</option>';
 
     window.employees.forEach(e => {
       const o1 = document.createElement('option');
-      o1.value = e.name;
+      o1.value   = e.name;
       o1.textContent = e.name;
       sel.appendChild(o1);
 
@@ -261,23 +264,24 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
   function getStatusBadge(status) {
     const statusClass = {
       'Confirmed': 'status-confirmed',
-      'Pending': 'status-pending',
+      'Pending':   'status-pending',
       'Cancelled': 'status-cancelled',
       'Completed': 'status-completed'
     }[status] || 'status-pending';
-    
     return `<span class="status-badge ${statusClass}">${status || 'Pending'}</span>`;
   }
 
   function getTypePill(type) {
-    const typeClass = type === 'Internal' ? 'type-internal' : 'type-external';
+    const typeClass = (type === 'Internal') ? 'type-internal' : 'type-external';
     return `<span class="type-pill ${typeClass}">${type || 'Internal'}</span>`;
   }
 
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
   }
 
   function formatDateOnly(isoString) {
@@ -306,14 +310,15 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
         title: e.title || '(No Title)',
         start: e.start,
         end: e.end,
-        backgroundColor: e.status === 'Confirmed' ? '#2DCE89' :
-                       e.status === 'Cancelled' ? '#F5365C' :
-                       e.status === 'Completed' ? '#11CDEF' : '#FB6340',
+        backgroundColor:
+          e.status === 'Confirmed' ? '#2DCE89' :
+          e.status === 'Cancelled' ? '#F5365C' :
+          e.status === 'Completed' ? '#11CDEF' : '#FB6340',
         extendedProps: {
           location: e.location,
-          notes: e.notes,
-          status: e.status,
-          topic: e.topic
+          notes:    e.notes,
+          status:   e.status,
+          topic:    e.topic
         }
       }));
 
@@ -321,14 +326,16 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
       initialView: 'dayGridMonth',
       height: 'auto',
       headerToolbar: {
-        left: 'prev,next today',
+        left:   'prev,next today',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listWeek'
+        right:  'dayGridMonth,timeGridWeek,listWeek'
       },
       events: filteredEvents,
-      eventClick: function(info) {
+      eventClick(info) {
         const { title, start, end, extendedProps } = info.event;
-        const modal = new bootstrap.Modal(document.getElementById('eventModal') || createEventModal());
+        const modal = new bootstrap.Modal(
+          document.getElementById('eventModal') || createEventModal()
+        );
         document.getElementById('eventModalBody').innerHTML = `
           <p><strong>Title:</strong> ${title}</p>
           <p><strong>Topic:</strong> ${extendedProps.topic || 'N/A'}</p>
@@ -368,7 +375,7 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
     const tbody = document.getElementById('entries-tbody');
     tbody.innerHTML = '';
 
-    if (window.entries.length === 0) {
+    if (!window.entries.length) {
       tbody.innerHTML = `
         <tr>
           <td colspan="15" class="empty-state">
@@ -382,7 +389,6 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
 
     window.entries.forEach((e, idx) => {
       const tr = document.createElement('tr');
-
       tr.innerHTML = `
         <td>${idx + 1}</td>
         <td><strong>${e.title}</strong></td>
@@ -408,45 +414,52 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
         </td>
       `;
 
-      // Delete logic
       tr.querySelector('.del-entry').addEventListener('click', async () => {
         if (confirm(`Delete "${e.title}"?`)) {
           showLoading();
           const token = await getToken(['Sites.ReadWrite.All']);
           const g = client(token);
-          const sid = await getSiteId(g)
-
-      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
+          const sid = await getSiteId(g);
+          await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
           await fetchEntries();
         }
       });
 
-      // Edit logic
       tr.querySelector('.edit-entry').addEventListener('click', () => {
         enableEditMode(tr, e);
       });
 
       tbody.appendChild(tr);
     });
+
     applyFilters();
   }
 
   function applyFilters() {
-    const selected = document.getElementById('employee-filter').value;
-    const month = document.getElementById('start-date-filter').value;
-    const rows = document.querySelectorAll('#entries-tbody tr');
+    const selectedSpeaker = document.getElementById('employee-filter').value;
+    const month           = document.getElementById('start-date-filter').value;
+    const query           = document.getElementById('keyword-search').value.trim().toLowerCase();
+    const rows            = document.querySelectorAll('#entries-tbody tr');
 
     rows.forEach((row, index) => {
       const entry = window.entries[index];
       if (!entry) return;
-
       let show = true;
 
-      if (selected && entry.AssignedEmployee !== selected) show = false;
+      if (selectedSpeaker && entry.AssignedEmployee !== selectedSpeaker) {
+        show = false;
+      }
 
       if (month && entry.start) {
         const entryMonth = entry.start.substring(0, 7);
         if (entryMonth !== month) show = false;
+      }
+
+      if (query) {
+        const text = Array.from(row.cells)
+          .map(td => td.textContent.toLowerCase())
+          .join(' ');
+        if (!text.includes(query)) show = false;
       }
 
       row.style.display = show ? '' : 'none';
@@ -479,9 +492,7 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
     td[12].innerHTML = `<select class="form-select form-select-sm">
       <option value="">Unassigned</option>
       ${window.employees.map(e =>
-        `<option value="${e.name}" ${e.name === entry.AssignedEmployee ? 'selected' : ''}>
-          ${e.name}
-        </option>`
+        `<option value="${e.name}" ${e.name === entry.AssignedEmployee ? 'selected' : ''}>${e.name}</option>`
       ).join('')}
     </select>`;
     td[13].innerHTML = `<textarea class="form-control form-control-sm" rows="2">${entry.notes}</textarea>`;
@@ -496,9 +507,7 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
     td[14].querySelector('.save-edit').addEventListener('click', async () => {
       showLoading();
       const updated = {};
-      const set = (key, val) => {
-        if (val !== '') updated[key] = val;
-      };
+      const set = (key, val) => { if (val !== '') updated[key] = val; };
 
       set('Title', td[1].querySelector('input').value);
       set('Topic', td[2].querySelector('input').value);
@@ -519,48 +528,25 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
         const g = client(token);
         const sid = await getSiteId(g);
 
-        await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`)
-          .patch(updated);
+        await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}/fields`).patch(updated);
 
-        // Send calendar invite when an employee is assigned
-        const assignedName = td[12].querySelector('select').value;
+        const assignedName  = td[12].querySelector('select').value;
         const assignedEmail = (window.employees.find(e => e.name === assignedName) || {}).email;
 
         if (assignedEmail && assignedEmail.includes('@')) {
           const event = {
             subject: updated.Title || 'Scheduled Event',
-            body: {
-              contentType: 'Text',
-              content: updated.Description || 'Scheduled event via scheduling tool.'
-            },
-            start: {
-              dateTime: `${updated.StartDate || entry.start}T09:00:00`,
-              timeZone: 'UTC'
-            },
-            end: {
-              dateTime: `${updated.EndDate || entry.end}T17:00:00`,
-              timeZone: 'UTC'
-            },
-            location: {
-              displayName: updated.Location || 'TBD'
-            },
-            attendees: [
-              {
-                emailAddress: {
-                  address: assignedEmail,
-                  name: assignedName
-                },
-                type: 'required'
-              }
-            ],
+            body: { contentType: 'Text', content: updated.Description || 'Scheduled event via scheduling tool.' },
+            start: { dateTime: `${updated.StartDate || entry.start}T09:00:00`, timeZone: 'UTC' },
+            end:   { dateTime: `${updated.EndDate   || entry.end}  T17:00:00`, timeZone: 'UTC' },
+            location: { displayName: updated.Location || 'TBD' },
+            attendees: [{ emailAddress: { address: assignedEmail, name: assignedName }, type: 'required' }],
             responseRequested: true,
             isOnlineMeeting: false
           };
 
           try {
-            await g.api('/me/events')
-              .query({ sendInvitations: true })
-              .post(event);
+            await g.api('/me/events').query({ sendInvitations: true }).post(event);
             console.log('✅ Calendar invite sent to:', assignedEmail);
           } catch (inviteErr) {
             console.error('❌ Failed to send calendar invite:', inviteErr);
@@ -607,9 +593,10 @@ calSel.innerHTML    = '<option value="">All Speakers</option>';
   document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
   document.getElementById('add-entry-btn').addEventListener('click', addEntry);
 
-  // Filter handlers
+  // Filter & Search handlers
   document.getElementById('employee-filter').addEventListener('change', applyFilters);
   document.getElementById('start-date-filter').addEventListener('change', applyFilters);
+  document.getElementById('keyword-search').addEventListener('input', applyFilters);
   document.getElementById('calendar-employee-filter').addEventListener('change', renderCalendarView);
 
   // Initialize
