@@ -1,3 +1,5 @@
+// main.js
+
 // Loading indicator
 function showLoading() {
   document.getElementById('loading-bar').classList.add('active');
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   let EMP_LIST_ID,
-    SCHED_LIST_ID;
+      SCHED_LIST_ID;
 
   async function getSiteId(g) {
     const site = await g
@@ -224,6 +226,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // expose addEntry to global scope so inline onclick or other pages can call it
+  window.addEntry = addEntry;
+
   function clearAddForm() {
     document.getElementById('new-title').value = '';
     document.getElementById('new-topic').value = '';
@@ -240,36 +245,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function populateEmployeeSelects() {
-  const sel        = document.getElementById('new-AssignedEmployee');
-  const filterSel  = document.getElementById('employee-filter');
-  const calSel     = document.getElementById('calendar-employee-filter');
+    const sel       = document.getElementById('new-AssignedEmployee');
+    const filterSel = document.getElementById('employee-filter');
+    const calSel    = document.getElementById('calendar-employee-filter');
 
-  // Only reset the ones that are on this page:
-  if (sel)       sel.innerHTML       = '<option value="">Select Speaker</option>';
-  if (filterSel) filterSel.innerHTML = '<option value="">All Speakers</option>';
-  if (calSel)    calSel.innerHTML    = '<option value="">All Speakers</option>';
+    if (sel)       sel.innerHTML       = '<option value="">Select Speaker</option>';
+    if (filterSel) filterSel.innerHTML = '<option value="">All Speakers</option>';
+    if (calSel)    calSel.innerHTML    = '<option value="">All Speakers</option>';
 
-  window.employees.forEach(e => {
-    if (sel) {
-      const o1 = document.createElement('option');
-      o1.value       = e.name;
-      o1.textContent = e.name;
-      sel.appendChild(o1);
-    }
-    if (filterSel) {
-      const o2 = document.createElement('option');
-      o2.value       = e.name;
-      o2.textContent = e.name;
-      filterSel.appendChild(o2);
-    }
-    if (calSel) {
-      const o3 = document.createElement('option');
-      o3.value       = e.name;
-      o3.textContent = e.name;
-      calSel.appendChild(o3);
-    }
-  });
-}
+    window.employees.forEach(e => {
+      if (sel) {
+        const o1 = document.createElement('option');
+        o1.value = e.name;
+        o1.textContent = e.name;
+        sel.appendChild(o1);
+      }
+      if (filterSel) {
+        const o2 = document.createElement('option');
+        o2.value = e.name;
+        o2.textContent = e.name;
+        filterSel.appendChild(o2);
+      }
+      if (calSel) {
+        const o3 = document.createElement('option');
+        o3.value = e.name;
+        o3.textContent = e.name;
+        calSel.appendChild(o3);
+      }
+    });
+  }
 
   function renderEmployeeTable() {
     const body = document.getElementById('employee-table-body');
@@ -284,22 +288,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             <i class="bi bi-trash"></i>
           </button>
         </td>`;
-      tr
-        .querySelector('button')
-        .addEventListener('click', async () => {
-          if (confirm(`Delete employee ${e.name}?`)) {
-            showLoading();
-            const token = await getToken(['Sites.ReadWrite.All']);
-            const g = client(token);
-            const sid = await getSiteId(g);
-            await g
-              .api(
-                `/sites/${sid}/lists/${EMP_LIST_ID}/items/${e.id}`
-              )
-              .delete();
-            await fetchEmployees();
-          }
-        });
+      tr.querySelector('button').addEventListener('click', async () => {
+        if (confirm(`Delete employee ${e.name}?`)) {
+          showLoading();
+          const token = await getToken(['Sites.ReadWrite.All']);
+          const g = client(token);
+          const sid = await getSiteId(g);
+          await g
+            .api(`/sites/${sid}/lists/${EMP_LIST_ID}/items/${e.id}`)
+            .delete();
+          await fetchEmployees();
+        }
+      });
       body.appendChild(tr);
     });
   }
@@ -307,13 +307,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   function getStatusBadge(status) {
     const map = {
       Confirmed: 'status-confirmed',
-      Pending: 'status-pending',
+      Pending:   'status-pending',
       Cancelled: 'status-cancelled',
       Completed: 'status-completed'
     };
     const cls = map[status] || 'status-pending';
-    return `<span class="status-badge ${cls}">${status ||
-      'Pending'}</span>`;
+    return `<span class="status-badge ${cls}">${status||'Pending'}</span>`;
   }
 
   function getTypePill(type) {
@@ -326,8 +325,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      day:   'numeric',
+      year:  'numeric'
     });
   }
 
@@ -357,7 +356,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         id: e.id,
         title: e.title || '(No Title)',
         start: e.start,
-        end: e.end,
+        end:   e.end,
         backgroundColor:
           e.status === 'Confirmed'
             ? '#2DCE89'
@@ -368,19 +367,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             : '#FB6340',
         extendedProps: {
           location: e.location,
-          notes: e.notes,
-          status: e.status,
-          topic: e.topic
+          notes:    e.notes,
+          status:   e.status,
+          topic:    e.topic
         }
       }));
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
-      height: 'auto',
+      height:      'auto',
       headerToolbar: {
-        left: 'prev,next today',
+        left:   'prev,next today',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listWeek'
+        right:  'dayGridMonth,timeGridWeek,listWeek'
       },
       events: filteredEvents,
       eventClick(info) {
@@ -391,17 +390,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         new bootstrap.Modal(modal).show();
         document.getElementById('eventModalBody').innerHTML = `
           <p><strong>Title:</strong> ${title}</p>
-          <p><strong>Topic:</strong> ${extendedProps.topic ||
-            'N/A'}</p>
-          <p><strong>Status:</strong> ${getStatusBadge(
-            extendedProps.status
-          )}</p>
+          <p><strong>Topic:</strong> ${extendedProps.topic||'N/A'}</p>
+          <p><strong>Status:</strong> ${getStatusBadge(extendedProps.status)}</p>
           <p><strong>Start:</strong> ${formatDate(start)}</p>
           <p><strong>End:</strong> ${formatDate(end)}</p>
-          <p><strong>Location:</strong> ${extendedProps.location ||
-            'N/A'}</p>
-          <p><strong>Notes:</strong> ${extendedProps.notes ||
-            'None'}</p>
+          <p><strong>Location:</strong> ${extendedProps.location||'N/A'}</p>
+          <p><strong>Notes:</strong> ${extendedProps.notes||'None'}</p>
         `;
       }
     });
@@ -412,7 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function createEventModal() {
     const modal = document.createElement('div');
     modal.className = 'modal fade';
-    modal.id = 'eventModal';
+    modal.id        = 'eventModal';
     modal.innerHTML = `
       <div class="modal-dialog">
         <div class="modal-content">
@@ -502,8 +496,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function applyFilters() {
     const selectedSpeaker = document.getElementById('employee-filter').value;
-    const month = document.getElementById('start-date-filter').value;
-    const query = document
+    const month           = document.getElementById('start-date-filter').value;
+    const query           = document
       .getElementById('keyword-search')
       .value.trim()
       .toLowerCase();
@@ -536,12 +530,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function enableEditMode(row, entry) {
     // ... unchanged edit logic here ...
-    // (no changes needed for editing functionality)
   }
 
   // ---- NEW BUTTON & HANDLERS ----
 
-  // Manage Speakers modal (unchanged)
+  // Manage Speakers modal
   document
     .getElementById('edit-employees-btn')
     .addEventListener('click', () =>
@@ -549,10 +542,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
 
-  // REMOVE this old in-table listener (we deleted the row in HTML):
-  // document.getElementById('add-entry-btn').removeEventListener('click', addEntry);
-
-  // ADD new redirect listener:
+  // Redirect to add-entry.html
   document
     .getElementById('open-add-entry-ui-btn')
     .addEventListener('click', () => {
@@ -573,14 +563,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     .getElementById('calendar-employee-filter')
     .addEventListener('change', renderCalendarView);
 
-  // View switching (unchanged)
+  // View switching
   document
     .getElementById('calendar-view-btn')
     .addEventListener('click', () => {
       document.getElementById('list-view-btn').classList.remove('active');
       document.getElementById('calendar-view-btn').classList.add('active');
       document.getElementById('calendar-container').style.display = 'block';
-      document.getElementById('list-container').style.display = 'none';
+      document.getElementById('list-container').style.display     = 'none';
       renderCalendarView();
     });
   document
@@ -589,7 +579,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('calendar-view-btn').classList.remove('active');
       document.getElementById('list-view-btn').classList.add('active');
       document.getElementById('calendar-container').style.display = 'none';
-      document.getElementById('list-container').style.display = 'block';
+      document.getElementById('list-container').style.display     = 'block';
     });
   document
     .getElementById('calendar-list-view-btn')
