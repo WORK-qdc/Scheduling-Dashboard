@@ -1,4 +1,5 @@
 // js/graphService.js
+
 import { getToken, signIn } from './auth.js';
 import * as utils            from './utils.js';
 import { Client }            from 'https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js';
@@ -16,7 +17,7 @@ function client(token) {
   return Client.init({ authProvider: done => done(null, token) });
 }
 
-// ----- export these five functions -----
+// —— all of these must be exported —— //
 
 export async function initLists() {
   utils.showLoading();
@@ -27,7 +28,7 @@ export async function initLists() {
   const res   = await g.api(`/sites/${sid}/lists`).get();
 
   EMP_LIST_ID   = res.value.find(l => l.displayName === 'SchedulingEmployeeTest').id;
-  SCHED_LIST_ID = res.value.find(l => l.displayName === 'TestTableScheduling').id;
+  SCHED_LIST_ID = res.value.find(l => l.displayName === 'TestTableScheduling'   ).id;
   utils.hideLoading();
 }
 
@@ -93,6 +94,7 @@ export async function addEmployee() {
     .post({ fields: { Title: name, Employeesemail: email } });
 
   await fetchEmployees();
+  utils.hideLoading();
 }
 
 export async function addEntry() {
@@ -102,10 +104,8 @@ export async function addEntry() {
     const g     = client(token);
     const sid   = await getSiteId(g);
 
-    const sel = document.getElementById('new-AssignedEmployee');
-    const assignedName  = sel.value;
-    const assignedEmail = (window.employees.find(e => e.name === assignedName) || {}).email;
-
+    // build your new item fields:
+    const assignedName  = document.getElementById('new-AssignedEmployee').value;
     const fields = {
       Title:                document.getElementById('new-title').value,
       Topic:                document.getElementById('new-topic').value,
@@ -124,7 +124,6 @@ export async function addEntry() {
 
     await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items`).post({ fields });
     await fetchEntries();
-    // optionally clear the form here
   } catch (err) {
     console.error('addEntry error:', err);
     alert(`Error adding entry:\n${err.message}`);
