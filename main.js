@@ -560,10 +560,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
 
   document
-    .getElementById('open-add-entry-ui-btn')
-    .addEventListener('click', () => {
-      window.location.href = 'add-entry.html';
-    });
+  .getElementById('open-add-entry-ui-btn')
+  .addEventListener('click', () => {
+    const modalEl = document.getElementById('addEntryModal');
+    const addEntryModal = new bootstrap.Modal(modalEl);
+    addEntryModal.show();
+  });
 
   document
     .getElementById('employee-filter')
