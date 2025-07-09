@@ -378,6 +378,13 @@ body {
   flex-direction: column;
 }
 
+#calendar-table-wrapper {
+  /* fill the .calendar-wrapper and let it scroll internally */
+  flex: 1;
+  min-height: 0;
+}
+
+
 .fc {
   font-family: 'Inter', sans-serif;
 }
