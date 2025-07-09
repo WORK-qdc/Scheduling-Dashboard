@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
-      height: '100%',
+      height: 'auto',
       headerToolbar: {
         left:   'prev,next today',
         center: 'title',
