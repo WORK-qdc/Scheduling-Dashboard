@@ -144,9 +144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const sel = document.getElementById('new-AssignedEmployee');
       const assignedEmployeeName = sel.value;
       const assignedEmployeeEmail =
-        (
-          window.employees.find(e => e.name === assignedEmployeeName) || {}
-        ).email;
+        (window.employees.find(e => e.name === assignedEmployeeName) || {})
+          .email;
 
       const fields = {
         Title: document.getElementById('new-title').value,
@@ -226,7 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // expose addEntry to global scope so inline onclick or other pages can call it
+  // expose addEntry globally
   window.addEntry = addEntry;
 
   function clearAddForm() {
@@ -383,26 +382,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
       events: filteredEvents,
       eventClick(info) {
-        const { title, start, end, extendedProps } = info.event;
+        const { title, start, end, extendedProps, id } = info.event;
         const modal =
           document.getElementById('eventModal') ||
           createEventModal();
-        new bootstrap.Modal(modal).show();
+
+        // 1) populate the modal body
         document.getElementById('eventModalBody').innerHTML = `
           <p><strong>Title:</strong> ${title}</p>
-          <p><strong>Topic:</strong> ${extendedProps.topic||'N/A'}</p>
+          <p><strong>Topic:</strong> ${extendedProps.topic || 'N/A'}</p>
           <p><strong>Status:</strong> ${getStatusBadge(extendedProps.status)}</p>
           <p><strong>Start:</strong> ${formatDate(start)}</p>
           <p><strong>End:</strong> ${formatDate(end)}</p>
-          <p><strong>Location:</strong> ${extendedProps.location||'N/A'}</p>
-          <p><strong>Notes:</strong> ${extendedProps.notes||'None'}</p>
+          <p><strong>Location:</strong> ${extendedProps.location || 'N/A'}</p>
+          <p><strong>Notes:</strong> ${extendedProps.notes || 'None'}</p>
         `;
+
+        // 2) hook up the Edit button
+        modal.querySelector('#editEventBtn').onclick = () =>
+          editEntryFromCalendar(id);
+
+        // 3) show the modal
+        new bootstrap.Modal(modal).show();
       }
     });
 
     calendar.render();
   }
 
+  // === UPDATED createEventModal with footer Edit button ===
   function createEventModal() {
     const modal = document.createElement('div');
     modal.className = 'modal fade';
@@ -415,11 +423,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" id="eventModalBody"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="editEventBtn">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </button>
+          </div>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(modal);
     return modal;
+  }
+
+  // === NEW helper to jump into list-view edit ===
+  function editEntryFromCalendar(entryId) {
+    const modalEl = document.getElementById('eventModal');
+    const bsModal = bootstrap.Modal.getInstance(modalEl);
+    if (bsModal) bsModal.hide();
+
+    // switch to list view
+    document.getElementById('list-view-btn').click();
+
+    // allow panel swap then click the edit button
+    setTimeout(() => {
+      document.querySelectorAll('#entries-tbody tr').forEach(row => {
+        const btn = row.querySelector('.edit-entry');
+        if (btn && btn.dataset.id === String(entryId)) {
+          btn.click();
+        }
+      });
+    }, 200);
   }
 
   function renderList() {
@@ -433,8 +468,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <i class="bi bi-calendar-x"></i>
             <p>No conferences scheduled yet. Add your first conference using the new Add Entry button!</p>
           </td>
-        </tr>
-      `;
+        </tr>`;
       return;
     }
 
@@ -448,18 +482,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         <td>${formatDate(e.start)}</td>
         <td>${formatDate(e.end)}</td>
         <td>${e.location}</td>
-        <td>${
-          e.link
-            ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>`
-            : ''
-        }</td>
+        <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
         <td>${e.industry}</td>
         <td><small>${truncate(e.desc, 50)}</small></td>
         <td>${formatDate(e.applicationdeadline)}</td>
         <td>${getTypePill(e.internalExternal)}</td>
-        <td>${
-          e.AssignedEmployee || '<em>Unassigned</em>'
-        }</td>
+        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
         <td><small>${truncate(e.notes, 50)}</small></td>
         <td class="text-center">
           <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
@@ -468,8 +496,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
             <i class="bi bi-trash"></i>
           </button>
-        </td>
-      `;
+        </td>`;
 
       tr.querySelector('.del-entry').addEventListener('click', async () => {
         if (confirm(`Delete "${e.title}"?`)) {
@@ -477,9 +504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const token = await getToken(['Sites.ReadWrite.All']);
           const g = client(token);
           const sid = await getSiteId(g);
-          await g
-            .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`)
-            .delete();
+          await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
           await fetchEntries();
         }
       });
@@ -497,10 +522,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyFilters() {
     const selectedSpeaker = document.getElementById('employee-filter').value;
     const month           = document.getElementById('start-date-filter').value;
-    const query           = document
-      .getElementById('keyword-search')
-      .value.trim()
-      .toLowerCase();
+    const query           = document.getElementById('keyword-search').value.trim().toLowerCase();
     const rows = document.querySelectorAll('#entries-tbody tr');
 
     rows.forEach((row, index) => {
@@ -508,9 +530,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!entry) return;
       let show = true;
 
-      if (selectedSpeaker && entry.AssignedEmployee !== selectedSpeaker) {
-        show = false;
-      }
+      if (selectedSpeaker && entry.AssignedEmployee !== selectedSpeaker) show = false;
 
       if (month && entry.start) {
         const entryMonth = entry.start.substring(0, 7);
@@ -518,9 +538,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (query) {
-        const text = Array.from(row.cells)
-          .map(td => td.textContent.toLowerCase())
-          .join(' ');
+        const text = Array.from(row.cells).map(td => td.textContent.toLowerCase()).join(' ');
         if (!text.includes(query)) show = false;
       }
 
@@ -529,12 +547,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function enableEditMode(row, entry) {
-    // ... unchanged edit logic here ...
+    // ... your existing inline‐edit logic ...
   }
 
-  // ---- NEW BUTTON & HANDLERS ----
+  // ---- EXISTING BUTTON & VIEW HANDLERS ----
 
-  // Manage Speakers modal
   document
     .getElementById('edit-employees-btn')
     .addEventListener('click', () =>
@@ -542,14 +559,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   document.getElementById('add-emp-btn').addEventListener('click', addEmployee);
 
-  // Redirect to add-entry.html
   document
     .getElementById('open-add-entry-ui-btn')
     .addEventListener('click', () => {
       window.location.href = 'add-entry.html';
     });
 
-  // Filter & Search handlers
   document
     .getElementById('employee-filter')
     .addEventListener('change', applyFilters);
@@ -563,7 +578,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     .getElementById('calendar-employee-filter')
     .addEventListener('change', renderCalendarView);
 
-  // View switching
   document
     .getElementById('calendar-view-btn')
     .addEventListener('click', () => {
@@ -583,11 +597,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   document
     .getElementById('calendar-list-view-btn')
-    .addEventListener('click', () => {
-      document.getElementById('list-view-btn').click();
-    });
+    .addEventListener('click', () =>
+      document.getElementById('list-view-btn').click()
+    );
 
-  // Initialize
+  // Initialize data
   try {
     await initLists();
     await fetchEmployees();
