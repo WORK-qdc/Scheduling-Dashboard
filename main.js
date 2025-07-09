@@ -566,6 +566,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addEntryModal = new bootstrap.Modal(modalEl);
     addEntryModal.show();
   });
+// Cancel = clear the form & hide the modal
+document
+  .getElementById('cancel-entry-btn')
+  .addEventListener('click', () => {
+    clearAddForm();
+    const modalEl = document.getElementById('addEntryModal');
+    bootstrap.Modal.getInstance(modalEl).hide();
+  });
+
+// Save = add entry, clear form & hide modal
+document
+  .getElementById('submit-entry-btn')
+  .addEventListener('click', async () => {
+    await addEntry();
+    clearAddForm();
+    const modalEl = document.getElementById('addEntryModal');
+    bootstrap.Modal.getInstance(modalEl).hide();
+  });
 
   document
     .getElementById('employee-filter')
