@@ -40,14 +40,14 @@ body {
 .main-header {
   background: var(--gradient);
   color: white;
-  padding: 1rem 0;
-  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
   box-shadow: var(--shadow-soft);
 }
 
 .main-header h1 {
   font-weight: 700;
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin: 0;
   letter-spacing: -0.5px;
 }
@@ -82,10 +82,10 @@ body {
 /* View Toggle */
 .view-toggle {
   background: var(--gray-100);
-  padding: 0.5rem;
-  border-radius: 50px;
+  padding: 0.25rem;
+  border-radius: 30px;
   display: inline-flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -93,12 +93,14 @@ body {
   background: transparent;
   border: none;
   color: var(--gray-600);
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.3s ease;
   cursor: pointer;
 }
+
 
 .view-btn:hover {
   color: var(--gray-800);
@@ -460,11 +462,6 @@ body {
 }
 
 /* Scrollbar */
-.table-container {
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-  overflow-x: auto;
-}
 
 .table-container::-webkit-scrollbar {
   width: 10px;
