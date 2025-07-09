@@ -363,9 +363,19 @@ body {
 
 /* Calendar Styles */
 .calendar-wrapper {
+  /* fill available space in .main-card */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+
+  /* keep your original styling */
   padding: 2rem;
   background: white;
   border-radius: 15px;
+
+  /* ensure it’s a flex-box if you later add more children */
+  display: flex;
+  flex-direction: column;
 }
 
 .fc {
@@ -560,6 +570,7 @@ body {
 
 .table-container {
   flex: 1;
+  min-height: 0;
   overflow: auto;
   max-height: none;
 }
