@@ -233,5 +233,64 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <!-- Your Main JS -->
   <script src="main.js"></script>
+  <!-- Add Entry Modal -->
+<div class="modal fade" id="addEntryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Conference</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- Body / Form -->
+      <div class="modal-body">
+        <form id="add-entry-form" novalidate>
+          <!-- Title -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Title</label>
+            <input type="text" id="new-title" class="form-control" required />
+          </div>
+          <!-- Topic -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Topic</label>
+            <input type="text" id="new-topic" class="form-control" />
+          </div>
+          <!-- Status -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Status</label>
+            <select id="new-status" class="form-select">
+              <option>Pending</option>
+              <option>Confirmed</option>
+              <option>Cancelled</option>
+              <option>Completed</option>
+            </select>
+          </div>
+          <div class="row">
+            <!-- Start / End Dates -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Start Date</label>
+              <input type="date" id="new-start" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">End Date</label>
+              <input type="date" id="new-end" class="form-control" />
+            </div>
+          </div>
+          <!-- Location, Link, Industry, Description, Deadline, Type, Speaker, Notes -->
+          <!-- … copy the rest of your fields exactly as in add-entry.html … -->
+        </form>
+      </div>
+      <!-- Footer / Buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" id="cancel-entry-btn">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-add-new" id="submit-entry-btn">
+          <i class="bi bi-check-circle me-1"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
