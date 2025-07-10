@@ -292,4 +292,119 @@
     </div>
   </div>
 </body>
+  <!-- Edit Entry Modal -->
+<div class="modal fade" id="editEntryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Conference</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- Body / Form -->
+      <div class="modal-body">
+        <form id="edit-entry-form" novalidate>
+          <input type="hidden" id="edit-entry-id" />
+
+          <!-- Title -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Title</label>
+            <input type="text" id="edit-title" class="form-control" required />
+          </div>
+
+          <!-- Topic -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Topic</label>
+            <input type="text" id="edit-topic" class="form-control" />
+          </div>
+
+          <!-- Status -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Status</label>
+            <select id="edit-status" class="form-select">
+              <option>Pending</option>
+              <option>Confirmed</option>
+              <option>Cancelled</option>
+              <option>Completed</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <!-- Start / End Dates -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Start Date</label>
+              <input type="date" id="edit-start" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">End Date</label>
+              <input type="date" id="edit-end" class="form-control" />
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Location</label>
+            <input type="text" id="edit-location" class="form-control" />
+          </div>
+
+          <!-- Link -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Link</label>
+            <input type="url" id="edit-link" class="form-control" />
+          </div>
+
+          <!-- Industry -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Industry</label>
+            <input type="text" id="edit-industry" class="form-control" />
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Description</label>
+            <textarea id="edit-desc" class="form-control" rows="3"></textarea>
+          </div>
+
+          <!-- Application Deadline -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Application Deadline</label>
+            <input type="date" id="edit-applicationdeadline" class="form-control" />
+          </div>
+
+          <!-- Type of Engagement -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Type of Engagement</label>
+            <select id="edit-type" class="form-select">
+              <option>Internal</option>
+              <option>External</option>
+            </select>
+          </div>
+
+          <!-- Assigned Employee -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Speaker</label>
+            <select id="edit-AssignedEmployee" class="form-select">
+              <option value="">Select Speaker</option>
+            </select>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Notes</label>
+            <textarea id="edit-notes" class="form-control" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+      <!-- Footer / Buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" id="edit-cancel-btn">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-save" id="edit-submit-btn">
+          <i class="bi bi-check-circle me-1"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </html>
