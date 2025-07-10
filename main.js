@@ -117,6 +117,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       notes: i.fields.Notes || ''
     }));
     // 3) Send the PATCH to SharePoint and refresh
+    renderList();
+    hideLoading();
+}  // ← closes fetchEntries()
+// 3) Send the PATCH to SharePoint and refresh
 async function updateEntry() {
   try {
     showLoading();
@@ -146,7 +150,9 @@ async function updateEntry() {
       .patch({ fields });
 
     await fetchEntries();
-    bootstrap.Modal.getInstance(document.getElementById('editEntryModal')).hide();
+    bootstrap.Modal
+      .getInstance(document.getElementById('editEntryModal'))
+      .hide();
     clearEditForm();
   } catch (err) {
     console.error('updateEntry failed:', err);
@@ -155,9 +161,6 @@ async function updateEntry() {
     hideLoading();
   }
 }
-    renderList();
-    hideLoading();
-  }
 
   async function addEmployee() {
     const name = prompt('Enter employee name:');
