@@ -423,13 +423,14 @@ async function updateEntry() {
       }));
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      height: 'auto',
-      headerToolbar: {
-        left:   'prev,next today',
-        center: 'title',
-        right:  'dayGridMonth,timeGridWeek,listWeek'
-      },
+  initialView: 'dayGridMonth',
+  height: '100%',        // ← fill the parent container
+  contentHeight: 'auto', // ← ensure all 6 weeks render
+  headerToolbar: {
+    left:   'prev,next today',
+    center: 'title',
+    right:  'dayGridMonth,timeGridWeek,listWeek'
+  },
       events: filteredEvents,
       eventClick(info) {
         const { title, start, end, extendedProps, id } = info.event;
