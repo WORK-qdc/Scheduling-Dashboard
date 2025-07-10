@@ -570,14 +570,14 @@ body {
 }
 
 .main-card {
-  flex: 1;
+  flex: 1 1 auto;        /* allow shrink/grow */
   display: flex;
   flex-direction: column;
+  min-height: 0;         /* ← crucial: lets children overflow */
 }
 
 .table-container {
-  flex: 1;
+  flex: 1 1 auto;        /* same */
   min-height: 0;
-  overflow: auto;
-  max-height: none;
+  overflow-y: auto;      /* vertical scroll only */
 }
