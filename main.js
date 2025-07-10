@@ -116,6 +116,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       AssignedEmployee: i.fields.AssignedEmployee || '',
       notes: i.fields.Notes || ''
     }));
+    // 3) Send the PATCH to SharePoint and refresh
+async function updateEntry() {
+  try {
+    showLoading();
+    const id = document.getElementById('edit-entry-id').value;
+    const fields = {
+      Title:                 document.getElementById('edit-title').value,
+      Topic:                 document.getElementById('edit-topic').value,
+      RegistrationStatus:    document.getElementById('edit-status').value,
+      StartDate:             document.getElementById('edit-start').value,
+      EndDate:               document.getElementById('edit-end').value,
+      Location:              document.getElementById('edit-location').value,
+      Link:                  document.getElementById('edit-link').value,
+      Industry:              document.getElementById('edit-industry').value,
+      Description:           document.getElementById('edit-desc').value,
+      ApplicationDeadline:   document.getElementById('edit-applicationdeadline').value,
+      Internal_x002f_External: document.getElementById('edit-type').value,
+      AssignedEmployee:      document.getElementById('edit-AssignedEmployee').value,
+      Notes:                 document.getElementById('edit-notes').value
+    };
+
+    const token = await getToken(['Sites.ReadWrite.All']);
+    const g     = client(token);
+    const sid   = await getSiteId(g);
+
+    await g
+      .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${id}`)
+      .patch({ fields });
+
+    await fetchEntries();
+    bootstrap.Modal.getInstance(document.getElementById('editEntryModal')).hide();
+    clearEditForm();
+  } catch (err) {
+    console.error('updateEntry failed:', err);
+    alert(`Error updating entry:\n${err.message}`);
+  } finally {
+    hideLoading();
+  }
+}
     renderList();
     hideLoading();
   }
@@ -243,21 +282,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('new-notes').value = '';
   }
 
-  function populateEmployeeSelects() {
-    const sel       = document.getElementById('new-AssignedEmployee');
-    const filterSel = document.getElementById('employee-filter');
-    const calSel    = document.getElementById('calendar-employee-filter');
+   function populateEmployeeSelects() {
+     const sel       = document.getElementById('new-AssignedEmployee');
+    const editSel   = document.getElementById('edit-AssignedEmployee');
+     const filterSel = document.getElementById('employee-filter');
+     const calSel    = document.getElementById('calendar-employee-filter');
 
-    if (sel)       sel.innerHTML       = '<option value="">Select Speaker</option>';
-    if (filterSel) filterSel.innerHTML = '<option value="">All Speakers</option>';
-    if (calSel)    calSel.innerHTML    = '<option value="">All Speakers</option>';
+     if (sel)       sel.innerHTML       = '<option value="">Select Speaker</option>';
+    if (editSel)   editSel.innerHTML   = '<option value="">Select Speaker</option>';
+     if (filterSel) filterSel.innerHTML = '<option value="">All Speakers</option>';
+     if (calSel)    calSel.innerHTML    = '<option value="">All Speakers</option>';
 
-    window.employees.forEach(e => {
-      if (sel) {
-        const o1 = document.createElement('option');
-        o1.value = e.name;
-        o1.textContent = e.name;
-        sel.appendChild(o1);
+     window.employees.forEach(e => {
+       if (sel) {
+         const o1 = document.createElement('option');
+         o1.value = e.name;
+         o1.textContent = e.name;
+         sel.appendChild(o1);
+       }
+      if (editSel) {
+        const o2 = document.createElement('option');
+        o2.value = e.name;
+        o2.textContent = e.name;
+        editSel.appendChild(o2);
       }
       if (filterSel) {
         const o2 = document.createElement('option');
@@ -471,6 +518,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         </tr>`;
       return;
     }
+    // Edit‐modal “Save Changes”
+document
+  .getElementById('edit-submit-btn')
+  .addEventListener('click', updateEntry);
+
+// Edit‐modal “Cancel”
+document
+  .getElementById('edit-cancel-btn')
+  .addEventListener('click', () => {
+    clearEditForm();
+    bootstrap.Modal
+      .getInstance(document.getElementById('editEntryModal'))
+      .hide();
+  });
 
     window.entries.forEach((e, idx) => {
       const tr = document.createElement('tr');
@@ -547,8 +608,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function enableEditMode(row, entry) {
-    // ... your existing inline‐edit logic ...
-  }
+  openEditEntryModal(entry);
+ }
 
   // ---- EXISTING BUTTON & VIEW HANDLERS ----
 
@@ -574,6 +635,43 @@ document
     const modalEl = document.getElementById('addEntryModal');
     bootstrap.Modal.getInstance(modalEl).hide();
   });
+// 1) Clear all fields in the Edit modal
+function clearEditForm() {
+  document.getElementById('edit-entry-id').value               = '';
+  document.getElementById('edit-title').value                  = '';
+  document.getElementById('edit-topic').value                  = '';
+  document.getElementById('edit-status').value                 = 'Pending';
+  document.getElementById('edit-start').value                  = '';
+  document.getElementById('edit-end').value                    = '';
+  document.getElementById('edit-location').value               = '';
+  document.getElementById('edit-link').value                   = '';
+  document.getElementById('edit-industry').value               = '';
+  document.getElementById('edit-desc').value                   = '';
+  document.getElementById('edit-applicationdeadline').value    = '';
+  document.getElementById('edit-type').value                   = 'Internal';
+  document.getElementById('edit-AssignedEmployee').value       = '';
+  document.getElementById('edit-notes').value                  = '';
+}
+
+// 2) Open & populate Edit modal with a given entry
+function openEditEntryModal(entry) {
+  document.getElementById('edit-entry-id').value            = entry.id;
+  document.getElementById('edit-title').value               = entry.title;
+  document.getElementById('edit-topic').value               = entry.topic;
+  document.getElementById('edit-status').value              = entry.status;
+  document.getElementById('edit-start').value               = formatDateOnly(entry.start);
+  document.getElementById('edit-end').value                 = formatDateOnly(entry.end);
+  document.getElementById('edit-location').value            = entry.location;
+  document.getElementById('edit-link').value                = entry.link;
+  document.getElementById('edit-industry').value            = entry.industry;
+  document.getElementById('edit-desc').value                = entry.desc;
+  document.getElementById('edit-applicationdeadline').value = formatDateOnly(entry.applicationdeadline);
+  document.getElementById('edit-type').value                = entry.internalExternal;
+  document.getElementById('edit-AssignedEmployee').value    = entry.AssignedEmployee;
+  document.getElementById('edit-notes').value               = entry.notes;
+
+  new bootstrap.Modal(document.getElementById('editEntryModal')).show();
+}
 
 // Save = add entry, clear form & hide modal
 document
