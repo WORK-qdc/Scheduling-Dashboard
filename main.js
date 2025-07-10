@@ -709,14 +709,17 @@ document
       document.getElementById('list-container').style.display     = 'none';
       renderCalendarView();
     });
-  document
-    .getElementById('list-view-btn')
-    .addEventListener('click', () => {
-      document.getElementById('calendar-view-btn').classList.remove('active');
-      document.getElementById('list-view-btn').classList.add('active');
-      document.getElementById('calendar-container').style.display = 'none';
-      document.getElementById('list-container').style.display     = 'block';
-    });
+  
+    document
+  .getElementById('list-view-btn')
+  .addEventListener('click', () => {
+    document.getElementById('calendar-view-btn').classList.remove('active');
+    document.getElementById('list-view-btn').classList.add('active');
+    document.getElementById('calendar-container').style.display = 'none';
+    document.getElementById('list-container').style.display     = 'block';
+    renderList();   // ← force the table to rebuild (and re-apply your scrollable container)
+  });
+
   document
     .getElementById('calendar-list-view-btn')
     .addEventListener('click', () =>
