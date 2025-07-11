@@ -12,6 +12,10 @@ function hideLoading() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const listBtn           = document.getElementById('list-view-btn');
+const calBtn            = document.getElementById('calendar-view-btn');
+const listContainer     = document.getElementById('list-container');
+const calendarContainer = document.getElementById('calendar-container');
   const msalConfig = {
     auth: {
       clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
@@ -700,25 +704,23 @@ document
     .getElementById('calendar-employee-filter')
     .addEventListener('change', renderCalendarView);
 
-  document
-    .getElementById('calendar-view-btn')
-    .addEventListener('click', () => {
-      document.getElementById('list-view-btn').classList.remove('active');
-      document.getElementById('calendar-view-btn').classList.add('active');
-      document.getElementById('calendar-container').style.display = 'block';
-      document.getElementById('list-container').style.display     = 'none';
-      renderCalendarView();
-    });
-  
-    document
-  .getElementById('list-view-btn')
-  .addEventListener('click', () => {
-    document.getElementById('calendar-view-btn').classList.remove('active');
-    document.getElementById('list-view-btn').classList.add('active');
-    document.getElementById('calendar-container').style.display = 'none';
-    document.getElementById('list-container').style.display     = 'block';
-    renderList();   // ← force the table to rebuild (and re-apply your scrollable container)
-  });
+  // View-toggle: Calendar → List and List → Calendar
+calBtn.addEventListener('click', () => {
+  listBtn.classList.remove('active');
+  calBtn.classList.add('active');
+  listContainer.classList.add('hidden');
+  calendarContainer.classList.remove('hidden');
+  renderCalendarView();
+});
+
+listBtn.addEventListener('click', () => {
+  calBtn.classList.remove('active');
+  listBtn.classList.add('active');
+  calendarContainer.classList.add('hidden');
+  listContainer.classList.remove('hidden');
+  renderList();
+});
+
 
   document
     .getElementById('calendar-list-view-btn')
