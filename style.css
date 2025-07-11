@@ -581,3 +581,7 @@ body {
   min-height: 0;
   overflow-y: auto;      /* vertical scroll only */
 }
+.hidden {
+  display: none !important;
+}
+
