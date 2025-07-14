@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const calBtn            = document.getElementById('calendar-view-btn');
 const listContainer     = document.getElementById('list-container');
 const calendarContainer = document.getElementById('calendar-container');
+  let isCollapsedMode = true; // Default to collapsed
   const msalConfig = {
     auth: {
       clientId: '8e23d112-104b-4e6a-a57d-7e3a2a61d837',
@@ -26,6 +27,13 @@ const calendarContainer = document.getElementById('calendar-container');
     },
     cache: { cacheLocation: 'localStorage' }
   };
+  
+document.getElementById('collapsed-mode-toggle').addEventListener('click', () => {
+  isCollapsedMode = !isCollapsedMode;
+  const toggle = document.getElementById('collapsed-mode-toggle');
+  toggle.textContent = isCollapsedMode ? 'Expanded View' : 'Collapsed View';
+  renderList();
+});
 
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
@@ -502,6 +510,28 @@ modal.dataset.eventData = JSON.stringify({
         </div>
       </div>
     </div>`;
+    function openCollapsedModalFromList(entry) {
+  const modal = document.getElementById('eventModal') || createEventModal();
+  const { title, status, start, end, location, AssignedEmployee: speaker } = entry;
+
+  // Minimal view
+  document.getElementById('eventModalBody').innerHTML = `
+    <p><strong>Title:</strong> ${title}</p>
+    <p><strong>Status:</strong> ${getStatusBadge(status)}</p>
+    <p><strong>Start:</strong> ${formatDate(start)}</p>
+    <p><strong>End:</strong> ${formatDate(end)}</p>
+    <p><strong>Location:</strong> ${location}</p>
+    <p><strong>Speaker:</strong> ${speaker || '<em>Unassigned</em>'}</p>
+  `;
+
+  modal.dataset.entryId = entry.id;
+  modal.dataset.eventData = JSON.stringify({ title, status, start, end, location, speaker });
+
+  modal.querySelector('#editEventBtn').onclick = () => editEntryFromCalendar(entry.id);
+
+  new bootstrap.Modal(modal).show();
+}
+
   document.body.appendChild(modal);
 
  modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
@@ -604,48 +634,74 @@ document
   });
 
     window.entries.forEach((e, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${idx + 1}</td>
-        <td><strong>${e.title}</strong></td>
-        <td>${e.topic}</td>
-        <td>${getStatusBadge(e.status)}</td>
-        <td>${formatDate(e.start)}</td>
-        <td>${formatDate(e.end)}</td>
-        <td>${e.location}</td>
-        <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
-        <td>${e.industry}</td>
-        <td><small>${truncate(e.desc, 50)}</small></td>
-        <td>${formatDate(e.applicationdeadline)}</td>
-        <td>${getTypePill(e.internalExternal)}</td>
-        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-        <td><small>${truncate(e.notes, 50)}</small></td>
-        <td class="text-center">
-          <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>`;
+  const tr = document.createElement('tr');
 
-      tr.querySelector('.del-entry').addEventListener('click', async () => {
-        if (confirm(`Delete "${e.title}"?`)) {
-          showLoading();
-          const token = await getToken(['Sites.ReadWrite.All']);
-          const g = client(token);
-          const sid = await getSiteId(g);
-          await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
-          await fetchEntries();
-        }
-      });
+  if (isCollapsedMode) {
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td><strong>${e.title}</strong></td>
+      <td>${getStatusBadge(e.status)}</td>
+      <td>${formatDate(e.start)}</td>
+      <td>${formatDate(e.end)}</td>
+      <td>${e.location}</td>
+      <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+      <td class="text-center">
+        <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>`;
+  } else {
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td><strong>${e.title}</strong></td>
+      <td>${e.topic}</td>
+      <td>${getStatusBadge(e.status)}</td>
+      <td>${formatDate(e.start)}</td>
+      <td>${formatDate(e.end)}</td>
+      <td>${e.location}</td>
+      <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+      <td>${e.industry}</td>
+      <td><small>${truncate(e.desc, 50)}</small></td>
+      <td>${formatDate(e.applicationdeadline)}</td>
+      <td>${getTypePill(e.internalExternal)}</td>
+      <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+      <td><small>${truncate(e.notes, 50)}</small></td>
+      <td class="text-center">
+        <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>`;
+  }
 
-      tr.querySelector('.edit-entry').addEventListener('click', () => {
-        enableEditMode(tr, e);
-      });
+  tr.querySelector('.del-entry').addEventListener('click', async () => {
+    if (confirm(`Delete "${e.title}"?`)) {
+      showLoading();
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const g = client(token);
+      const sid = await getSiteId(g);
+      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
+      await fetchEntries();
+    }
+  });
 
-      tbody.appendChild(tr);
-    });
+  tr.querySelector('.edit-entry').addEventListener('click', () => {
+    enableEditMode(tr, e);
+  });
+
+  // ✨ Double-click to open the calendar-style modal
+  tr.addEventListener('dblclick', () => {
+    openCollapsedModalFromList(e);
+  });
+
+  tbody.appendChild(tr);
+});
+
 
     applyFilters();
   }
