@@ -464,6 +464,32 @@ async function updateEntry() {
         // 2) hook up the Edit button
         modal.querySelector('#editEventBtn').onclick = () =>
           editEntryFromCalendar(id);
+        modal.querySelector('#deleteEventBtn').onclick = async () => {
+      if (!confirm(`Delete "${title}"?`)) return;
+
+      // hide modal and show loader
+      bootstrap.Modal.getInstance(modal).hide();
+      showLoading();
+
+      try {
+        const token = await getToken(['Sites.ReadWrite.All']);
+        const g     = client(token);
+        const sid   = await getSiteId(g);
+
+        // perform delete
+        await g
+          .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${id}`)
+          .delete();
+
+        // refresh entries (both list and calendar)
+        await fetchEntries();
+      } catch (err) {
+        console.error('deleteEntry failed:', err);
+        alert('Error deleting entry: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    };
 modal.dataset.entryId = id;
 modal.dataset.eventData = JSON.stringify({
   title,
