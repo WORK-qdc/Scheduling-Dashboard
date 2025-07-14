@@ -606,6 +606,43 @@ modal.dataset.eventData = JSON.stringify({
 
   function renderList() {
     const tbody = document.getElementById('entries-tbody');
+    const thead = document.getElementById('entries-thead');
+thead.innerHTML = '';
+
+const headRow = document.createElement('tr');
+
+if (isCollapsedMode) {
+  headRow.innerHTML = `
+    <th width="50">#</th>
+    <th>Title</th>
+    <th>Status</th>
+    <th>Start</th>
+    <th>End</th>
+    <th>Location</th>
+    <th>Speaker</th>
+    <th width="100">Actions</th>
+  `;
+} else {
+  headRow.innerHTML = `
+    <th width="50">#</th>
+    <th>Title</th>
+    <th>Topic</th>
+    <th>Status</th>
+    <th>Start</th>
+    <th>End</th>
+    <th>Location</th>
+    <th>Link</th>
+    <th>Industry</th>
+    <th>Description</th>
+    <th>Deadline</th>
+    <th>Type</th>
+    <th>Speaker</th>
+    <th>Notes</th>
+    <th width="100">Actions</th>
+  `;
+}
+
+thead.appendChild(headRow);
     tbody.innerHTML = '';
 
     if (!window.entries.length) {
