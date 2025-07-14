@@ -419,11 +419,12 @@ async function updateEntry() {
             ? '#11CDEF'
             : '#FB6340',
         extendedProps: {
-          location: e.location,
-          notes:    e.notes,
-          status:   e.status,
-          topic:    e.topic
-        }
+  location: e.location,
+  notes:    e.notes,
+  status:   e.status,
+  topic:    e.topic,
+  speaker:  e.AssignedEmployee  // NEW
+}
       }));
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -444,14 +445,13 @@ async function updateEntry() {
 
         // 1) populate the modal body
         document.getElementById('eventModalBody').innerHTML = `
-          <p><strong>Title:</strong> ${title}</p>
-          <p><strong>Topic:</strong> ${extendedProps.topic || 'N/A'}</p>
-          <p><strong>Status:</strong> ${getStatusBadge(extendedProps.status)}</p>
-          <p><strong>Start:</strong> ${formatDate(start)}</p>
-          <p><strong>End:</strong> ${formatDate(end)}</p>
-          <p><strong>Location:</strong> ${extendedProps.location || 'N/A'}</p>
-          <p><strong>Notes:</strong> ${extendedProps.notes || 'None'}</p>
-        `;
+  <p><strong>Title:</strong> ${title}</p>
+  <p><strong>Status:</strong> ${getStatusBadge(extendedProps.status)}</p>
+  <p><strong>Start:</strong> ${formatDate(start)}</p>
+  <p><strong>End:</strong> ${formatDate(end)}</p>
+  <p><strong>Location:</strong> ${extendedProps.location || 'N/A'}</p>
+  <p><strong>Speaker:</strong> ${extendedProps.speaker || '<em>Unassigned</em>'}</p>
+`;
 
         // 2) hook up the Edit button
         modal.querySelector('#editEventBtn').onclick = () =>
@@ -467,30 +467,42 @@ async function updateEntry() {
 
   // === UPDATED createEventModal with footer Edit button ===
   function createEventModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal fade';
-    modal.id        = 'eventModal';
-    modal.innerHTML = `
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Event Details</h5>
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.id        = 'eventModal';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h5 class="modal-title">Event Details</h5>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light border toggle-fullscreen" title="Toggle Fullscreen">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body" id="eventModalBody"></div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              Close
-            </button>
-            <button type="button" class="btn btn-primary" id="editEventBtn">
-              <i class="bi bi-pencil me-1"></i>Edit
-            </button>
-          </div>
         </div>
-      </div>`;
-    document.body.appendChild(modal);
-    return modal;
-  }
+        <div class="modal-body" id="eventModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+          </button>
+          <button type="button" class="btn btn-primary" id="editEventBtn">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // 🔁 Add fullscreen toggle handler
+  modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
+    modal.querySelector('.modal-dialog').classList.toggle('modal-fullscreen-custom');
+  });
+
+  return modal;
+}
+
 
   // === NEW helper to jump into list-view edit ===
   function editEntryFromCalendar(entryId) {
