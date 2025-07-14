@@ -504,6 +504,9 @@ modal.dataset.eventData = JSON.stringify({
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Close
           </button>
+          <button type="button" class="btn btn-danger" id="deleteEventBtn">
+            <i class="bi bi-trash me-1"></i>Delete
+          </button>
           <button type="button" class="btn btn-primary" id="editEventBtn">
             <i class="bi bi-pencil me-1"></i>Edit
           </button>
@@ -603,6 +606,69 @@ modal.dataset.eventData = JSON.stringify({
       });
     }, 200);
   }
+// ─── ensure we only ever have one #eventModal in the DOM ───
+function getOrCreateEventModal() {
+  let modal = document.getElementById('eventModal');
+  if (!modal) modal = createEventModal();
+  return modal;
+}
+
+// ─── open the full “expanded” entry modal from a list row ───
+async function openEntryModalFromList(entry) {
+  const modal = getOrCreateEventModal();
+
+  // 1) populate all fields
+  modal.querySelector('#eventModalBody').innerHTML = `
+    <p><strong>Title:</strong> ${entry.title}</p>
+    <p><strong>Topic:</strong> ${entry.topic}</p>
+    <p><strong>Status:</strong> ${getStatusBadge(entry.status)}</p>
+    <p><strong>Start:</strong> ${formatDate(entry.start)}</p>
+    <p><strong>End:</strong> ${formatDate(entry.end)}</p>
+    <p><strong>Location:</strong> ${entry.location}</p>
+    <p><strong>Speaker:</strong> ${entry.AssignedEmployee || '<em>Unassigned</em>'}</p>
+    <p><strong>Industry:</strong> ${entry.industry}</p>
+    <p><strong>Type:</strong> ${getTypePill(entry.internalExternal)}</p>
+    <p><strong>Deadline:</strong> ${formatDate(entry.applicationdeadline)}</p>
+    <p><strong>Description:</strong> ${entry.desc}</p>
+    <p><strong>Notes:</strong> ${entry.notes}</p>
+    <p><strong>Link:</strong> ${
+      entry.link
+        ? `<a href="${entry.link}" target="_blank">${entry.link}</a>`
+        : 'N/A'
+    }</p>
+  `;
+
+  // 2) stash the entry ID
+  modal.dataset.entryId = entry.id;
+
+  // 3) hook up EDIT (reuses your calendar→list→edit flow)
+  modal.querySelector('#editEventBtn').onclick = () =>
+    editEntryFromCalendar(entry.id);
+
+  // 4) hook up DELETE
+  modal.querySelector('#deleteEventBtn').onclick = async () => {
+    if (!confirm(`Delete "${entry.title}"?`)) return;
+    bootstrap.Modal.getInstance(modal).hide();
+    showLoading();
+    try {
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const g     = client(token);
+      const sid   = await getSiteId(g);
+      await g
+        .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}`)
+        .delete();
+      await fetchEntries();
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting entry: ' + err.message);
+    } finally {
+      hideLoading();
+    }
+  };
+
+  // 5) show the modal
+  new bootstrap.Modal(modal).show();
+}
 
   function renderList() {
     const tbody = document.getElementById('entries-tbody');
@@ -731,9 +797,8 @@ document
     enableEditMode(tr, e);
   });
 
-  // ✨ Double-click to open the calendar-style modal
-  tr.addEventListener('dblclick', () => {
-    openCollapsedModalFromList(e);
+    tr.addEventListener('dblclick', () => {
+    openEntryModalFromList(e);
   });
 
   tbody.appendChild(tr);
