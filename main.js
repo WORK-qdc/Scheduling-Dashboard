@@ -456,6 +456,15 @@ async function updateEntry() {
         // 2) hook up the Edit button
         modal.querySelector('#editEventBtn').onclick = () =>
           editEntryFromCalendar(id);
+modal.dataset.entryId = id;
+modal.dataset.eventData = JSON.stringify({
+  title,
+  status: extendedProps.status,
+  start,
+  end,
+  location: extendedProps.location,
+  speaker: extendedProps.speaker
+});
 
         // 3) show the modal
         new bootstrap.Modal(modal).show();
@@ -495,10 +504,51 @@ async function updateEntry() {
     </div>`;
   document.body.appendChild(modal);
 
-  // 🔁 Add fullscreen toggle handler
-  modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
-    modal.querySelector('.modal-dialog').classList.toggle('modal-fullscreen-custom');
-  });
+ modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
+  const dialog = modal.querySelector('.modal-dialog');
+  const isFullscreen = dialog.classList.toggle('modal-fullscreen-custom');
+
+  // When going fullscreen, show full entry
+  if (isFullscreen) {
+    const eventId = modal.dataset.entryId;
+    const entry = window.entries.find(e => String(e.id) === eventId);
+    if (entry) {
+      document.getElementById('eventModalBody').innerHTML = `
+        <p><strong>Title:</strong> ${entry.title}</p>
+        <p><strong>Status:</strong> ${getStatusBadge(entry.status)}</p>
+        <p><strong>Start:</strong> ${formatDate(entry.start)}</p>
+        <p><strong>End:</strong> ${formatDate(entry.end)}</p>
+        <p><strong>Location:</strong> ${entry.location}</p>
+        <p><strong>Speaker:</strong> ${entry.AssignedEmployee || '<em>Unassigned</em>'}</p>
+        <p><strong>Topic:</strong> ${entry.topic}</p>
+        <p><strong>Industry:</strong> ${entry.industry}</p>
+        <p><strong>Type:</strong> ${getTypePill(entry.internalExternal)}</p>
+        <p><strong>Application Deadline:</strong> ${formatDate(entry.applicationdeadline)}</p>
+        <p><strong>Description:</strong> ${entry.desc}</p>
+        <p><strong>Notes:</strong> ${entry.notes}</p>
+        <p><strong>Link:</strong> ${
+          entry.link
+            ? `<a href="${entry.link}" target="_blank">${entry.link}</a>`
+            : 'N/A'
+        }</p>
+      `;
+    }
+  } else {
+    // Restore minimal view
+    const event = modal.dataset.eventData && JSON.parse(modal.dataset.eventData);
+    if (event) {
+      document.getElementById('eventModalBody').innerHTML = `
+        <p><strong>Title:</strong> ${event.title}</p>
+        <p><strong>Status:</strong> ${getStatusBadge(event.status)}</p>
+        <p><strong>Start:</strong> ${formatDate(event.start)}</p>
+        <p><strong>End:</strong> ${formatDate(event.end)}</p>
+        <p><strong>Location:</strong> ${event.location}</p>
+        <p><strong>Speaker:</strong> ${event.speaker || '<em>Unassigned</em>'}</p>
+      `;
+    }
+  }
+});
+
 
   return modal;
 }
