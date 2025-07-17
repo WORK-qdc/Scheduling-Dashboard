@@ -698,37 +698,34 @@ async function openEntryModalFromList(entry) {
 thead.innerHTML = '';
 
 const headRow = document.createElement('tr');
-
 if (isCollapsedMode) {
-  headRow.innerHTML = `
-    <th width="50">#</th>
-    <th>Title</th>
-    <th>Status</th>
-    <th>Start</th>
-    <th>End</th>
-    <th>Location</th>
-    <th>Speaker</th>
-    
-  `;
-} else {
-  headRow.innerHTML = `
-    <th width="50">#</th>
-    <th>Title</th>
-    <th>Topic</th>
-    <th>Status</th>
-    <th>Start</th>
-    <th>End</th>
-    <th>Location</th>
-    <th>Link</th>
-    <th>Industry</th>
-    <th>Description</th>
-    <th>Deadline</th>
-    <th>Internal/External</th>
-    <th>Speaker</th>
-    <th>Notes</th>
-    
-  `;
-}
+    headRow.innerHTML = `
+      <th width="50">#</th>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Location</th>
+      <th>Speaker</th>
+    `;
+  } else {
+    headRow.innerHTML = `
+      <th width="50">#</th>
+      <th>Title</th>
+      <th>Topic</th>
+      <th>Status</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Location</th>
+      <th>Link</th>
+      <th>Industry</th>
+      <th>Description</th>
+      <th>Deadline</th>
+      <th>Type</th>
+      <th>Speaker</th>
+      <th>Notes</th>
+    `;
+  }
 
 thead.appendChild(headRow);
     tbody.innerHTML = '';
@@ -760,25 +757,35 @@ document
 
     window.entries.forEach((e, idx) => {
   const tr = document.createElement('tr');
-
-  if (isCollapsedMode) {
-    tr.innerHTML = `
-      <td>${idx + 1}</td>
-      <td><strong>${e.title}</strong></td>
-      <td>${getStatusBadge(e.status)}</td>
-      <td>${formatDate(e.start)}</td>
-      <td>${formatDate(e.end)}</td>
-      <td>${e.location}</td>
-      <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-      <td class="text-center">
-        <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>`;
-  } else {
+if (isCollapsedMode) {
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td><strong>${e.title}</strong></td>
+        <td>${getStatusBadge(e.status)}</td>
+        <td>${formatDate(e.start)}</td>
+        <td>${formatDate(e.end)}</td>
+        <td>${e.location}</td>
+        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td><strong>${e.title}</strong></td>
+        <td>${e.topic}</td>
+        <td>${getStatusBadge(e.status)}</td>
+        <td>${formatDate(e.start)}</td>
+        <td>${formatDate(e.end)}</td>
+        <td>${e.location}</td>
+        <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+        <td>${e.industry}</td>
+        <td><small>${truncate(e.desc, 50)}</small></td>
+        <td>${formatDate(e.applicationdeadline)}</td>
+        <td>${getTypePill(e.internalExternal)}</td>
+        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+        <td><small>${truncate(e.notes, 50)}</small></td>
+      `;
+    }
+   else {
     tr.innerHTML = `
       <td>${idx + 1}</td>
       <td><strong>${e.title}</strong></td>
