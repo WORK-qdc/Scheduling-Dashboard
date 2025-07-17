@@ -564,9 +564,12 @@ modal.dataset.eventData = JSON.stringify({
       } else {
         const d = JSON.parse(modal.dataset.eventData || '{}');
         document.getElementById('eventModalBody').innerHTML = `
-          <p><strong>Title:</strong> ${d.title}</p>
-          <!-- … minimal‐view fields … -->
-        `;
+          <p><strong>Link:</strong> ${
+     entry.link
+       ? '<a href="' + entry.link + '" target="_blank">' + entry.link + '</a>'
+       : 'N/A'
+   }</p>
+ `;
       }
     });
 
