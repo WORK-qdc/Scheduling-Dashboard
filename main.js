@@ -523,41 +523,20 @@ modal.dataset.eventData = JSON.stringify({
         </div>
         <div class="modal-body" id="eventModalBody"></div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="button" class="btn btn-danger" id="deleteEventBtn">
-            <i class="bi bi-trash me-1"></i>Delete
+            <i class="bi bi-trash me-1"></i> Delete
           </button>
           <button type="button" class="btn btn-primary" id="editEventBtn">
-            <i class="bi bi-pencil me-1"></i>Edit
+            <i class="bi bi-pencil me-1"></i> Edit
           </button>
         </div>
       </div>
-    </div>`;
-    function openCollapsedModalFromList(entry) {
-  const modal = document.getElementById('eventModal') || createEventModal();
-  const { title, status, start, end, location, AssignedEmployee: speaker } = entry;
-
-  // Minimal view
-  document.getElementById('eventModalBody').innerHTML = `
-    <p><strong>Title:</strong> ${title}</p>
-    <p><strong>Status:</strong> ${getStatusBadge(status)}</p>
-    <p><strong>Start:</strong> ${formatDate(start)}</p>
-    <p><strong>End:</strong> ${formatDate(end)}</p>
-    <p><strong>Location:</strong> ${location}</p>
-    <p><strong>Speaker:</strong> ${speaker || '<em>Unassigned</em>'}</p>
-  `;
-
-  modal.dataset.entryId = entry.id;
-  modal.dataset.eventData = JSON.stringify({ title, status, start, end, location, speaker });
-
-  modal.querySelector('#editEventBtn').onclick = () => editEntryFromCalendar(entry.id);
-
-  new bootstrap.Modal(modal).show();
-}
-
+    </div>
+  `;  // ← closing backtick and semicolon here are critical
   document.body.appendChild(modal);
+  return modal;
+}
 
  modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
   const dialog = modal.querySelector('.modal-dialog');
@@ -693,12 +672,13 @@ async function openEntryModalFromList(entry) {
 }
 
   function renderList() {
-    const tbody = document.getElementById('entries-tbody');
-    const thead = document.getElementById('entries-thead');
-thead.innerHTML = '';
+  const tbody = document.getElementById('entries-tbody');
+  const thead = document.getElementById('entries-thead');
+  thead.innerHTML = '';
 
-const headRow = document.createElement('tr');
-if (isCollapsedMode) {
+  // Build header row without the Actions column
+  const headRow = document.createElement('tr');
+  if (isCollapsedMode) {
     headRow.innerHTML = `
       <th width="50">#</th>
       <th>Title</th>
@@ -726,38 +706,24 @@ if (isCollapsedMode) {
       <th>Notes</th>
     `;
   }
+  thead.appendChild(headRow);
+  tbody.innerHTML = '';
 
-thead.appendChild(headRow);
-    tbody.innerHTML = '';
+  if (!window.entries.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${isCollapsedMode ? 7 : 14}" class="empty-state">
+          <i class="bi bi-calendar-x"></i>
+          <p>No conferences scheduled yet. Add your first conference using the Add Entry button!</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
-    if (!window.entries.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="15" class="empty-state">
-            <i class="bi bi-calendar-x"></i>
-            <p>No conferences scheduled yet. Add your first conference using the new Add Entry button!</p>
-          </td>
-        </tr>`;
-      return;
-    }
-    // Edit‐modal “Save Changes”
-document
-  .getElementById('edit-submit-btn')
-  .addEventListener('click', updateEntry);
-
-// Edit‐modal “Cancel”
-document
-  .getElementById('edit-cancel-btn')
-  .addEventListener('click', () => {
-    clearEditForm();
-    bootstrap.Modal
-      .getInstance(document.getElementById('editEntryModal'))
-      .hide();
-  });
-
-    window.entries.forEach((e, idx) => {
-  const tr = document.createElement('tr');
-if (isCollapsedMode) {
+  window.entries.forEach((e, idx) => {
+    const tr = document.createElement('tr');
+    if (isCollapsedMode) {
       tr.innerHTML = `
         <td>${idx + 1}</td>
         <td><strong>${e.title}</strong></td>
@@ -785,31 +751,12 @@ if (isCollapsedMode) {
         <td><small>${truncate(e.notes, 50)}</small></td>
       `;
     }
-   else {
-    tr.innerHTML = `
-      <td>${idx + 1}</td>
-      <td><strong>${e.title}</strong></td>
-      <td>${e.topic}</td>
-      <td>${getStatusBadge(e.status)}</td>
-      <td>${formatDate(e.start)}</td>
-      <td>${formatDate(e.end)}</td>
-      <td>${e.location}</td>
-      <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
-      <td>${e.industry}</td>
-      <td><small>${truncate(e.desc, 50)}</small></td>
-      <td>${formatDate(e.applicationdeadline)}</td>
-      <td>${getTypePill(e.internalExternal)}</td>
-      <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-      <td><small>${truncate(e.notes, 50)}</small></td>
-      
-  }
-
-    tr.addEventListener('dblclick', () => {
-    openEntryModalFromList(e);
+    // preserve the double-click edit opener
+    tr.addEventListener('dblclick', () => openEntryModalFromList(e));
+    tbody.appendChild(tr);
   });
+}
 
-  tbody.appendChild(tr);
-});
 
 
     applyFilters();
