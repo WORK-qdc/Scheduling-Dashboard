@@ -530,46 +530,50 @@ modal.dataset.eventData = JSON.stringify({
   modal.innerHTML = `
     <div class="modal-dialog">
       <div class="modal-content">
-        <!-- your header/body/footer markup here -->
-        <button type="button" class="btn btn-sm btn-light border toggle-fullscreen" title="Toggle Fullscreen">
+        <!-- header, body, footer markup -->
+        <button type="button"
+                class="btn btn-sm btn-light border toggle-fullscreen"
+                title="Toggle Fullscreen">
           <i class="bi bi-arrows-fullscreen"></i>
         </button>
-        <!-- … etc … -->
+        <div id="eventModalBody"></div>
+        <div class="modal-footer">
+          <button id="editEventBtn" class="btn btn-primary">Edit</button>
+          <button id="deleteEventBtn" class="btn btn-danger">Delete</button>
+        </div>
       </div>
     </div>
-  `;  // ← this backtick is the end of the HTML template literal
+  `;
 
-  // Append to the DOM
   document.body.appendChild(modal);
 
-  // **NOW** hook up your toggle‐fullscreen listener _inside_ the function
+  // Only one toggle‐fullscreen listener inside the function:
   modal
     .querySelector('.toggle-fullscreen')
     .addEventListener('click', () => {
       const dialog = modal.querySelector('.modal-dialog');
       const isFs   = dialog.classList.toggle('modal-fullscreen-custom');
-
       if (isFs) {
-        const eventId = modal.dataset.entryId;
-        const entry   = window.entries.find(e => String(e.id) === eventId);
+        const entry = window.entries.find(e => String(e.id) === modal.dataset.entryId);
         if (entry) {
           document.getElementById('eventModalBody').innerHTML = `
             <p><strong>Title:</strong> ${entry.title}</p>
-            <!-- … all of your expanded‐view fields here … -->
+            <!-- … all expanded‐view fields … -->
           `;
         }
       } else {
-        const d = modal.dataset.eventData && JSON.parse(modal.dataset.eventData);
+        const d = JSON.parse(modal.dataset.eventData || '{}');
         document.getElementById('eventModalBody').innerHTML = `
           <p><strong>Title:</strong> ${d.title}</p>
-          <!-- … minimal‐view fields here … -->
+          <!-- … minimal‐view fields … -->
         `;
       }
     });
 
-  // **Only one** return and one closing brace here:
+  // Only one return and one closing brace:
   return modal;
 }
+
 
  modal.querySelector('.toggle-fullscreen').addEventListener('click', () => {
   const dialog = modal.querySelector('.modal-dialog');
