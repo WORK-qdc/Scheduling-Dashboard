@@ -337,29 +337,46 @@ async function updateEntry() {
   }
 
   function renderEmployeeTable() {
-    const body = document.getElementById('employee-table-body');
-    body.innerHTML = '';
-    window.employees.forEach(e => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${e.name}</td>
-        <td>${e.email}</td>
-        
-      tr.querySelector('button').addEventListener('click', async () => {
-        if (confirm(`Delete employee ${e.name}?`)) {
-          showLoading();
-          const token = await getToken(['Sites.ReadWrite.All']);
-          const g = client(token);
-          const sid = await getSiteId(g);
-          await g
-            .api(`/sites/${sid}/lists/${EMP_LIST_ID}/items/${e.id}`)
-            .delete();
-          await fetchEmployees();
-        }
-      });
-      body.appendChild(tr);
+  const body = document.getElementById('employee-table-body');
+  body.innerHTML = '';
+  window.employees.forEach(e => {
+    const tr = document.createElement('tr');
+
+    // 1) Properly close the template literal, and include a <button> cell
+    tr.innerHTML = `
+      <td>${e.name}</td>
+      <td>${e.email}</td>
+      <td>
+        <button class="btn btn-sm btn-danger delete-emp">
+          Delete
+        </button>
+      </td>
+    `;  // ← backtick and semicolon here close the string
+
+    // 2) Now grab that button and hook up your delete logic
+    tr.querySelector('.delete-emp').addEventListener('click', async () => {
+      if (!confirm(`Delete employee ${e.name}?`)) return;
+      showLoading();
+      try {
+        const token = await getToken(['Sites.ReadWrite.All']);
+        const g     = client(token);
+        const sid   = await getSiteId(g);
+        await g
+          .api(`/sites/${sid}/lists/${EMP_LIST_ID}/items/${e.id}`)
+          .delete();
+        await fetchEmployees();
+      } catch (err) {
+        console.error(err);
+        alert('Error deleting employee:\n' + err.message);
+      } finally {
+        hideLoading();
+      }
     });
-  }
+
+    body.appendChild(tr);
+  });
+}
+
 
   function getStatusBadge(status) {
     const map = {
