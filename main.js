@@ -344,11 +344,7 @@ async function updateEntry() {
       tr.innerHTML = `
         <td>${e.name}</td>
         <td>${e.email}</td>
-        <td class="text-center">
-          <button class="action-btn btn-delete" data-id="${e.id}">
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>`;
+        
       tr.querySelector('button').addEventListener('click', async () => {
         if (confirm(`Delete employee ${e.name}?`)) {
           showLoading();
@@ -712,7 +708,7 @@ if (isCollapsedMode) {
     <th>End</th>
     <th>Location</th>
     <th>Speaker</th>
-    <th width="100">Actions</th>
+    
   `;
 } else {
   headRow.innerHTML = `
@@ -727,10 +723,10 @@ if (isCollapsedMode) {
     <th>Industry</th>
     <th>Description</th>
     <th>Deadline</th>
-    <th>Type</th>
+    <th>Internal/External</th>
     <th>Speaker</th>
     <th>Notes</th>
-    <th width="100">Actions</th>
+    
   `;
 }
 
@@ -798,30 +794,8 @@ document
       <td>${getTypePill(e.internalExternal)}</td>
       <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
       <td><small>${truncate(e.notes, 50)}</small></td>
-      <td class="text-center">
-        <button class="action-btn btn-edit edit-entry" data-id="${e.id}" title="Edit">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="action-btn btn-delete del-entry" data-id="${e.id}" title="Delete">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>`;
+      
   }
-
-  tr.querySelector('.del-entry').addEventListener('click', async () => {
-    if (confirm(`Delete "${e.title}"?`)) {
-      showLoading();
-      const token = await getToken(['Sites.ReadWrite.All']);
-      const g = client(token);
-      const sid = await getSiteId(g);
-      await g.api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${e.id}`).delete();
-      await fetchEntries();
-    }
-  });
-
-  tr.querySelector('.edit-entry').addEventListener('click', () => {
-    enableEditMode(tr, e);
-  });
 
     tr.addEventListener('dblclick', () => {
     openEntryModalFromList(e);
