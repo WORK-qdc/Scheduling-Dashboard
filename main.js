@@ -526,32 +526,48 @@ modal.dataset.eventData = JSON.stringify({
   const modal = document.createElement('div');
   modal.className = 'modal fade';
   modal.id        = 'eventModal';
+
   modal.innerHTML = `
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header d-flex justify-content-between align-items-center">
-          <h5 class="modal-title">Event Details</h5>
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light border toggle-fullscreen" title="Toggle Fullscreen">
-              <i class="bi bi-arrows-fullscreen"></i>
-            </button>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-        </div>
-        <div class="modal-body" id="eventModalBody"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-danger" id="deleteEventBtn">
-            <i class="bi bi-trash me-1"></i> Delete
-          </button>
-          <button type="button" class="btn btn-primary" id="editEventBtn">
-            <i class="bi bi-pencil me-1"></i> Edit
-          </button>
-        </div>
+        <!-- your header/body/footer markup here -->
+        <button type="button" class="btn btn-sm btn-light border toggle-fullscreen" title="Toggle Fullscreen">
+          <i class="bi bi-arrows-fullscreen"></i>
+        </button>
+        <!-- … etc … -->
       </div>
     </div>
-  `;  // ← closing backtick and semicolon here are critical
+  `;  // ← this backtick is the end of the HTML template literal
+
+  // Append to the DOM
   document.body.appendChild(modal);
+
+  // **NOW** hook up your toggle‐fullscreen listener _inside_ the function
+  modal
+    .querySelector('.toggle-fullscreen')
+    .addEventListener('click', () => {
+      const dialog = modal.querySelector('.modal-dialog');
+      const isFs   = dialog.classList.toggle('modal-fullscreen-custom');
+
+      if (isFs) {
+        const eventId = modal.dataset.entryId;
+        const entry   = window.entries.find(e => String(e.id) === eventId);
+        if (entry) {
+          document.getElementById('eventModalBody').innerHTML = `
+            <p><strong>Title:</strong> ${entry.title}</p>
+            <!-- … all of your expanded‐view fields here … -->
+          `;
+        }
+      } else {
+        const d = modal.dataset.eventData && JSON.parse(modal.dataset.eventData);
+        document.getElementById('eventModalBody').innerHTML = `
+          <p><strong>Title:</strong> ${d.title}</p>
+          <!-- … minimal‐view fields here … -->
+        `;
+      }
+    });
+
+  // **Only one** return and one closing brace here:
   return modal;
 }
 
