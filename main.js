@@ -618,7 +618,8 @@ modal.dataset.eventData = JSON.stringify({
 
 
   return modal;
-)};
+  )
+}
 
 
   // === NEW helper to jump into list-view edit ===
