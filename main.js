@@ -618,7 +618,7 @@ modal.dataset.eventData = JSON.stringify({
 
 
   return modal;
-  )
+  
 }
 
 
