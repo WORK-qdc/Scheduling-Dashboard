@@ -556,10 +556,15 @@ modal.dataset.eventData = JSON.stringify({
       if (isFs) {
         const entry = window.entries.find(e => String(e.id) === modal.dataset.entryId);
         if (entry) {
-          document.getElementById('eventModalBody').innerHTML = `
-            <p><strong>Title:</strong> ${entry.title}</p>
-            <!-- … all expanded‐view fields … -->
-          `;
+          const d = JSON.parse(modal.dataset.eventData || '{}');
+document.getElementById('eventModalBody').innerHTML = `
+  <p><strong>Link:</strong> ${
+    d.link
+      ? '<a href="' + d.link + '" target="_blank">' + d.link + '</a>'
+      : 'N/A'
+  }</p>
+`;
+
         }
       } else {
         const d = JSON.parse(modal.dataset.eventData || '{}');
