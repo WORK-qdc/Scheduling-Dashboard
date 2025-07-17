@@ -4,9 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Conference Scheduling Platform</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
+    rel="stylesheet"
+  />
   <link href="style.css" rel="stylesheet" />
 </head>
 <body>
@@ -53,7 +62,11 @@
           >
             <i class="bi bi-funnel me-1"></i> Filters
           </button>
-          <div class="dropdown-menu p-3" aria-labelledby="filtersDropdownBtn" style="min-width: 220px;">
+          <div
+            class="dropdown-menu p-3"
+            aria-labelledby="filtersDropdownBtn"
+            style="min-width: 220px;"
+          >
             <!-- Speaker filter -->
             <div class="filter-group mb-2">
               <label class="mb-1">Speaker</label>
@@ -78,18 +91,32 @@
             placeholder="Search conferences…"
           />
         </div>
-<!-- Collapsed/Expanded Toggle -->
-<div class="ms-auto me-3" id="collapsed-toggle-container">
-  <span class="text-primary fw-semibold toggle-collapsed-mode" role="button" id="collapsed-mode-toggle">
-    Expanded View
-  </span>
-</div>
+
+        <!-- Collapsed/Expanded Toggle -->
+        <div class="ms-auto me-3" id="collapsed-toggle-container">
+          <span
+            class="text-primary fw-semibold toggle-collapsed-mode"
+            role="button"
+            id="collapsed-mode-toggle"
+          >
+            Expanded View
+          </span>
+        </div>
+
         <!-- Manage Speakers & Add Entry -->
         <div class="ms-auto d-flex align-items-center">
-          <button type="button" id="edit-employees-btn" class="btn-manage me-2">
+          <button
+            type="button"
+            id="edit-employees-btn"
+            class="btn-manage me-2"
+          >
             <i class="bi bi-people me-2"></i> Manage Speakers
           </button>
-          <button type="button" id="open-add-entry-ui-btn" class="btn-add-new">
+          <button
+            type="button"
+            id="open-add-entry-ui-btn"
+            class="btn-add-new"
+          >
             <i class="bi bi-plus-circle me-2"></i> Add Entry
           </button>
         </div>
@@ -98,10 +125,9 @@
       <!-- Table -->
       <div class="table-container">
         <table class="modern-table">
-  <!-- only one thead, JS will populate it -->
-  <thead id="entries-thead"></thead>
-  <tbody id="entries-tbody"></tbody>
-</table>
+          <thead id="entries-thead"></thead>
+          <tbody id="entries-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -118,7 +144,11 @@
           >
             <i class="bi bi-funnel me-1"></i> Filters
           </button>
-          <div class="dropdown-menu p-3" aria-labelledby="calFiltersDropdownBtn" style="min-width: 220px;">
+          <div
+            class="dropdown-menu p-3"
+            aria-labelledby="calFiltersDropdownBtn"
+            style="min-width: 220px;"
+          >
             <div class="filter-group">
               <label class="mb-1">Speaker</label>
               <select id="calendar-employee-filter" class="form-select">
@@ -128,7 +158,11 @@
           </div>
         </div>
         <div class="ms-auto">
-          <button type="button" id="calendar-list-view-btn" class="btn-manage">
+          <button
+            type="button"
+            id="calendar-list-view-btn"
+            class="btn-manage"
+          >
             <i class="bi bi-arrow-left me-2"></i> Back to List
           </button>
         </div>
@@ -147,10 +181,18 @@
           <h5 class="modal-title">
             <i class="bi bi-people me-2"></i>Employee Management
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
         </div>
         <div class="modal-body">
-          <button type="button" id="add-emp-btn" class="btn-add-new mb-3">
+          <button
+            type="button"
+            id="add-emp-btn"
+            class="btn-add-new mb-3"
+          >
             <i class="bi bi-person-plus me-2"></i>Add Employee
           </button>
           <table class="modern-table">
@@ -168,12 +210,11 @@
     </div>
   </div>
 
-  <!-- Vendor Scripts (order matters!) -->
+  <!-- Your Main JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://alcdn.msauth.net/browser/2.27.0/js/msal-browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@microsoft/microsoft-graph-client/lib/graph-js-sdk-web.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-  <!-- Your Main JS -->
   <script src="main.js"></script>
 
   <!-- Add Entry Modal -->
@@ -183,7 +224,11 @@
         <!-- Header -->
         <div class="modal-header">
           <h5 class="modal-title">Add New Conference</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
         </div>
         <!-- Body / Form -->
         <div class="modal-body">
@@ -191,7 +236,12 @@
             <!-- Title -->
             <div class="mb-3">
               <label class="form-label fw-bold">Title</label>
-              <input type="text" id="new-title" class="form-control" required />
+              <input
+                type="text"
+                id="new-title"
+                class="form-control"
+                required
+              />
             </div>
             <!-- Topic -->
             <div class="mb-3">
@@ -212,17 +262,29 @@
               <!-- Start / End Dates -->
               <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Start Date</label>
-                <input type="date" id="new-start" class="form-control" />
+                <input
+                  type="date"
+                  id="new-start"
+                  class="form-control"
+                />
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">End Date</label>
-                <input type="date" id="new-end" class="form-control" />
+                <input
+                  type="date"
+                  id="new-end"
+                  class="form-control"
+                />
               </div>
             </div>
             <!-- Location -->
             <div class="mb-3">
               <label class="form-label fw-bold">Location</label>
-              <input type="text" id="new-location" class="form-control" />
+              <input
+                type="text"
+                id="new-location"
+                class="form-control"
+              />
             </div>
             <!-- Link -->
             <div class="mb-3">
@@ -232,21 +294,33 @@
             <!-- Industry -->
             <div class="mb-3">
               <label class="form-label fw-bold">Industry</label>
-              <input type="text" id="new-industry" class="form-control" />
+              <input
+                type="text"
+                id="new-industry"
+                class="form-control"
+              />
             </div>
             <!-- Description -->
             <div class="mb-3">
               <label class="form-label fw-bold">Description</label>
-              <textarea id="new-desc" class="form-control" rows="3"></textarea>
+              <textarea
+                id="new-desc"
+                class="form-control"
+                rows="3"
+              ></textarea>
             </div>
             <!-- Application Deadline -->
             <div class="mb-3">
               <label class="form-label fw-bold">Application Deadline</label>
-              <input type="date" id="new-applicationdeadline" class="form-control" />
+              <input
+                type="date"
+                id="new-applicationdeadline"
+                class="form-control"
+              />
             </div>
-            <!-- Type of Engagement -->
+            <!-- Internal/External -->
             <div class="mb-3">
-              <label class="form-label fw-bold">Type of Engagement</label>
+              <label class="form-label fw-bold">Internal/External</label>
               <select id="new-type" class="form-select">
                 <option>Internal</option>
                 <option>External</option>
@@ -257,140 +331,201 @@
               <label class="form-label fw-bold">Speaker</label>
               <select id="new-AssignedEmployee" class="form-select">
                 <option value="">Select Speaker</option>
-                <!-- Populated via JS -->
               </select>
             </div>
             <!-- Notes -->
             <div class="mb-3">
               <label class="form-label fw-bold">Notes</label>
-              <textarea id="new-notes" class="form-control" rows="2"></textarea>
+              <textarea
+                id="new-notes"
+                class="form-control"
+                rows="2"
+              ></textarea>
             </div>
           </form>
         </div>
         <!-- Footer / Buttons -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" id="cancel-entry-btn">Cancel</button>
-          <button type="button" class="btn btn-add-new" id="submit-entry-btn">
+          <button
+            type="button"
+            class="btn btn-cancel"
+            data-bs-dismiss="modal"
+            id="cancel-entry-btn"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-add-new"
+            id="submit-entry-btn"
+          >
             <i class="bi bi-check-circle me-1"></i> Save
           </button>
         </div>
       </div>
     </div>
   </div>
-</body>
+
   <!-- Edit Entry Modal -->
-<div class="modal fade" id="editEntryModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Conference</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <!-- Body / Form -->
-      <div class="modal-body">
-        <form id="edit-entry-form" novalidate>
-          <input type="hidden" id="edit-entry-id" />
+  <div class="modal fade" id="editEntryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Conference</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <!-- Body / Form -->
+        <div class="modal-body">
+          <form id="edit-entry-form" novalidate>
+            <input type="hidden" id="edit-entry-id" />
 
-          <!-- Title -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Title</label>
-            <input type="text" id="edit-title" class="form-control" required />
-          </div>
-
-          <!-- Topic -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Topic</label>
-            <input type="text" id="edit-topic" class="form-control" />
-          </div>
-
-          <!-- Status -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Status</label>
-            <select id="edit-status" class="form-select">
-              <option>Pending</option>
-              <option>Confirmed</option>
-              <option>Cancelled</option>
-              <option>Completed</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <!-- Start / End Dates -->
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold">Start Date</label>
-              <input type="date" id="edit-start" class="form-control" />
+            <!-- Title -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Title</label>
+              <input
+                type="text"
+                id="edit-title"
+                class="form-control"
+                required
+              />
             </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold">End Date</label>
-              <input type="date" id="edit-end" class="form-control" />
+
+            <!-- Topic -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Topic</label>
+              <input type="text" id="edit-topic" class="form-control" />
             </div>
-          </div>
 
-          <!-- Location -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Location</label>
-            <input type="text" id="edit-location" class="form-control" />
-          </div>
+            <!-- Status -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Status</label>
+              <select id="edit-status" class="form-select">
+                <option>Pending</option>
+                <option>Confirmed</option>
+                <option>Cancelled</option>
+                <option>Completed</option>
+              </select>
+            </div>
 
-          <!-- Link -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Link</label>
-            <input type="url" id="edit-link" class="form-control" />
-          </div>
+            <div class="row">
+              <!-- Start / End Dates -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Start Date</label>
+                <input
+                  type="date"
+                  id="edit-start"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">End Date</label>
+                <input
+                  type="date"
+                  id="edit-end"
+                  class="form-control"
+                />
+              </div>
+            </div>
 
-          <!-- Industry -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Industry</label>
-            <input type="text" id="edit-industry" class="form-control" />
-          </div>
+            <!-- Location -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Location</label>
+              <input
+                type="text"
+                id="edit-location"
+                class="form-control"
+              />
+            </div>
 
-          <!-- Description -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Description</label>
-            <textarea id="edit-desc" class="form-control" rows="3"></textarea>
-          </div>
+            <!-- Link -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Link</label>
+              <input type="url" id="edit-link" class="form-control" />
+            </div>
 
-          <!-- Application Deadline -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Application Deadline</label>
-            <input type="date" id="edit-applicationdeadline" class="form-control" />
-          </div>
+            <!-- Industry -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Industry</label>
+              <input
+                type="text"
+                id="edit-industry"
+                class="form-control"
+              />
+            </div>
 
-          <!-- Type of Engagement -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Type of Engagement</label>
-            <select id="edit-type" class="form-select">
-              <option>Internal</option>
-              <option>External</option>
-            </select>
-          </div>
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Description</label>
+              <textarea
+                id="edit-desc"
+                class="form-control"
+                rows="3"
+              ></textarea>
+            </div>
 
-          <!-- Assigned Employee -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Speaker</label>
-            <select id="edit-AssignedEmployee" class="form-select">
-              <option value="">Select Speaker</option>
-            </select>
-          </div>
+            <!-- Application Deadline -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Application Deadline</label>
+              <input
+                type="date"
+                id="edit-applicationdeadline"
+                class="form-control"
+              />
+            </div>
 
-          <!-- Notes -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Notes</label>
-            <textarea id="edit-notes" class="form-control" rows="2"></textarea>
-          </div>
-        </form>
-      </div>
-      <!-- Footer / Buttons -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" id="edit-cancel-btn">
-          Cancel
-        </button>
-        <button type="button" class="btn btn-save" id="edit-submit-btn">
-          <i class="bi bi-check-circle me-1"></i> Save Changes
-        </button>
+            <!-- Internal/External -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Internal/External</label>
+              <select id="edit-type" class="form-select">
+                <option>Internal</option>
+                <option>External</option>
+              </select>
+            </div>
+
+            <!-- Assigned Employee -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Speaker</label>
+              <select id="edit-AssignedEmployee" class="form-select">
+                <option value="">Select Speaker</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Notes</label>
+              <textarea
+                id="edit-notes"
+                class="form-control"
+                rows="2"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        <!-- Footer / Buttons -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-cancel"
+            data-bs-dismiss="modal"
+            id="edit-cancel-btn"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-save"
+            id="edit-submit-btn"
+          >
+            <i class="bi bi-check-circle me-1"></i> Save Changes
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</body>
 </html>
