@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <th>Industry</th>
         <th>Description</th>
         <th>Deadline</th>
-        <th>Type</th>
+        <th>Internal/External</th>
         <th>Speaker</th>
         <th>Notes</th>
       `;
