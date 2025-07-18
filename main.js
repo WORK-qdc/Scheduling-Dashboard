@@ -664,44 +664,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     th.appendChild(document.createTextNode(col.label + ' '));
 
     if (col.key === 'internalExternal') {
-+      // remove sorting for this column; instead create a filter dropdown
-+      const sel = document.createElement('select');
-+      sel.id = 'internal-external-filter';
-+      // keep formatting consistent: add a leading "Either" option
-+      ['','Internal','External'].forEach(val => {
-+        const opt = document.createElement('option');
-+        opt.value = val;
-+        opt.textContent = val || 'Either';
-+        sel.appendChild(opt);
-+      });
-+      // on change, re-apply filters
-+      sel.addEventListener('change', applyFilters);
-+      th.appendChild(sel);
-+    } else if (col.key) {
-+      // existing sort behavior for all other columns
-+      th.style.cursor = 'pointer';
-+      const icon = document.createElement('i');
-+      icon.classList.add('sort-icon', 'bi');
-+      if (sortColumn === col.key) {
-+        icon.classList.add(
-+          sortDirection === 'asc'
-+            ? 'bi-sort-alpha-down-alt'
-+            : 'bi-sort-alpha-up-alt'
-+        );
-+      } else {
-+        icon.classList.add('bi-sort-alpha-down');
-+      }
-+      th.appendChild(icon);
-+      th.addEventListener('click', () => {
-+        if (sortColumn === col.key) {
-+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-+        } else {
-+          sortColumn    = col.key;
-+          sortDirection = 'asc';
-+        }
-+        renderList();
-+      });
-+    }
+      // remove sorting for this column; instead create a filter dropdown
+      const sel = document.createElement('select');
+      sel.id = 'internal-external-filter';
+      // keep formatting consistent: add a leading "Either" option
+      ['','Internal','External'].forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val || 'Either';
+        sel.appendChild(opt);
+      });
+      // on change, re-apply filters
+      sel.addEventListener('change', applyFilters);
+      th.appendChild(sel);
+    } else if (col.key) {
+      // existing sort behavior for all other columns
+      th.style.cursor = 'pointer';
+      const icon = document.createElement('i');
+      icon.classList.add('sort-icon', 'bi');
+      if (sortColumn === col.key) {
+        icon.classList.add(
+          sortDirection === 'asc'
+            ? 'bi-sort-alpha-down-alt'
+            : 'bi-sort-alpha-up-alt'
+        );
+      } else {
+        icon.classList.add('bi-sort-alpha-down');
+      }
+      th.appendChild(icon);
+      th.addEventListener('click', () => {
+        if (sortColumn === col.key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortColumn    = col.key;
+          sortDirection = 'asc';
+        }
+        renderList();
+      });
+    }
 
     headRow.appendChild(th);
   });
