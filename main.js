@@ -663,36 +663,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     // always show the label
     th.appendChild(document.createTextNode(col.label + ' '));
 
-    if (col.key) {
-      // make it look clickable
-      th.style.cursor = 'pointer';
-      // icon to show sort state
-      const icon = document.createElement('i');
-      icon.classList.add('sort-icon', 'bi');
-      if (sortColumn === col.key) {
-        // current sorted column
-        icon.classList.add(
-          sortDirection === 'asc'
-            ? 'bi-sort-alpha-down-alt'
-            : 'bi-sort-alpha-up-alt'
-        );
-      } else {
-        // unsorted default icon
-        icon.classList.add('bi-sort-alpha-down');
-      }
-      th.appendChild(icon);
-
-      // when clicked: update sort state & rerender
-      th.addEventListener('click', () => {
-        if (sortColumn === col.key) {
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-          sortColumn    = col.key;
-          sortDirection = 'asc';
-        }
-        renderList();
-      });
-    }
+    if (col.key === 'internalExternal') {
++      // remove sorting for this column; instead create a filter dropdown
++      const sel = document.createElement('select');
++      sel.id = 'internal-external-filter';
++      // keep formatting consistent: add a leading "Either" option
++      ['','Internal','External'].forEach(val => {
++        const opt = document.createElement('option');
++        opt.value = val;
++        opt.textContent = val || 'Either';
++        sel.appendChild(opt);
++      });
++      // on change, re-apply filters
++      sel.addEventListener('change', applyFilters);
++      th.appendChild(sel);
++    } else if (col.key) {
++      // existing sort behavior for all other columns
++      th.style.cursor = 'pointer';
++      const icon = document.createElement('i');
++      icon.classList.add('sort-icon', 'bi');
++      if (sortColumn === col.key) {
++        icon.classList.add(
++          sortDirection === 'asc'
++            ? 'bi-sort-alpha-down-alt'
++            : 'bi-sort-alpha-up-alt'
++        );
++      } else {
++        icon.classList.add('bi-sort-alpha-down');
++      }
++      th.appendChild(icon);
++      th.addEventListener('click', () => {
++        if (sortColumn === col.key) {
++          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
++        } else {
++          sortColumn    = col.key;
++          sortDirection = 'asc';
++        }
++        renderList();
++      });
++    }
 
     headRow.appendChild(th);
   });
@@ -775,6 +784,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectedSpeaker = document.getElementById('employee-filter').value;
     const month           = document.getElementById('start-date-filter').value;
     const query           = document.getElementById('keyword-search').value.trim().toLowerCase();
+    const typeFilter      = document.getElementById('internal-external-filter').value;
     const rows            = document.querySelectorAll('#entries-tbody tr');
 
     rows.forEach((row, i) => {
@@ -791,7 +801,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const text = Array.from(row.cells).map(td => td.textContent.toLowerCase()).join(' ');
         if (!text.includes(query)) show = false;
       }
-
+// new internal/external filter
+      if (typeFilter && entry.internalExternal !== typeFilter) show = false;
       row.style.display = show ? '' : 'none';
     });
   }
