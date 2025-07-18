@@ -663,21 +663,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // always show the label
     th.appendChild(document.createTextNode(col.label + ' '));
 
-    if (col.key === 'internalExternal') {
-      // remove sorting for this column; instead create a filter dropdown
-      const sel = document.createElement('select');
-      sel.id = 'internal-external-filter';
-      // keep formatting consistent: add a leading "Either" option
-      ['','Internal','External'].forEach(val => {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = val || 'Either';
-        sel.appendChild(opt);
-      });
-      // on change, re-apply filters
-      sel.addEventListener('change', applyFilters);
-      th.appendChild(sel);
-    } else if (col.key) {
+    if (col.key) {
       // existing sort behavior for all other columns
       th.style.cursor = 'pointer';
       const icon = document.createElement('i');
@@ -832,6 +818,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('employee-filter').addEventListener('change', applyFilters);
   document.getElementById('start-date-filter').addEventListener('change', applyFilters);
   document.getElementById('keyword-search').addEventListener('input', applyFilters);
+  document.getElementById('internal-external-filter').addEventListener('change', applyFilters);
   document.getElementById('calendar-employee-filter').addEventListener('change', renderCalendarView);
 
   calBtn.addEventListener('click', () => {
