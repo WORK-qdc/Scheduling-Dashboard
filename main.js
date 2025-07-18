@@ -1,6 +1,7 @@
-// main.js
+// sort state
+let sortColumn   = null;       // e.g. 'title', 'start', 'AssignedEmployee', ...
+let sortDirection = 'asc';     // or 'desc'
 
-// Loading indicator
 function showLoading() {
   document.getElementById('loading-bar').classList.add('active');
 }
@@ -621,88 +622,154 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderList() {
-    const tbody = document.getElementById('entries-tbody');
-    const thead = document.getElementById('entries-thead');
-    thead.innerHTML = '';
+  const tbody = document.getElementById('entries-tbody');
+  const thead = document.getElementById('entries-thead');
+  thead.innerHTML = '';
 
-    const headRow = document.createElement('tr');
-    if (isCollapsedMode) {
-      headRow.innerHTML = `
-        <th width="50">#</th>
-        <th>Title</th>
-        <th>Status</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Location</th>
-        <th>Speaker</th>
-      `;
-    } else {
-      headRow.innerHTML = `
-        <th width="50">#</th>
-        <th>Title</th>
-        <th>Topic</th>
-        <th>Status</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Location</th>
-        <th>Link</th>
-        <th>Industry</th>
-        <th>Description</th>
-        <th>Deadline</th>
-        <th>Internal/External</th>
-        <th>Speaker</th>
-        <th>Notes</th>
-      `;
-    }
-    thead.appendChild(headRow);
-    tbody.innerHTML = '';
+  // 1) Define which columns to show (and their object-keys)
+  const columns = isCollapsedMode
+    ? [
+        { label: '#',      key: null,               width: '50' },
+        { label: 'Title',  key: 'title'                },
+        { label: 'Status', key: 'status'               },
+        { label: 'Start',  key: 'start'                },
+        { label: 'End',    key: 'end'                  },
+        { label: 'Location', key: 'location'           },
+        { label: 'Speaker',  key: 'AssignedEmployee'   }
+      ]
+    : [
+        { label: '#',               key: null,               width: '50' },
+        { label: 'Title',           key: 'title'                },
+        { label: 'Topic',           key: 'topic'                },
+        { label: 'Status',          key: 'status'               },
+        { label: 'Start',           key: 'start'                },
+        { label: 'End',             key: 'end'                  },
+        { label: 'Location',        key: 'location'             },
+        { label: 'Link',            key: 'link'                 },
+        { label: 'Industry',        key: 'industry'             },
+        { label: 'Description',     key: 'desc'                 },
+        { label: 'Deadline',        key: 'applicationdeadline'  },
+        { label: 'Internal/External', key: 'internalExternal'  },
+        { label: 'Speaker',         key: 'AssignedEmployee'     },
+        { label: 'Notes',           key: 'notes'                }
+      ];
 
-    if (!window.entries.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="${isCollapsedMode ? 7 : 14}" class="empty-state">
-            <i class="bi bi-calendar-x"></i>
-            <p>No conferences scheduled yet. Add your first conference using the Add Entry button!</p>
-          </td>
-        </tr>
-      `;
-      return;
-    }
+  // 2) Build the <thead> row with clickable <th>s
+  const headRow = document.createElement('tr');
+  columns.forEach(col => {
+    const th = document.createElement('th');
+    if (col.width) th.setAttribute('width', col.width);
 
-    window.entries.forEach((e, idx) => {
-      const tr = document.createElement('tr');
-      if (isCollapsedMode) {
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td><strong>${e.title}</strong></td>
-          <td>${getStatusBadge(e.status)}</td>
-          <td>${formatDate(e.start)}</td>
-          <td>${formatDate(e.end)}</td>
-          <td>${e.location}</td>
-          <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-        `;
+    // always show the label
+    th.appendChild(document.createTextNode(col.label + ' '));
+
+    if (col.key) {
+      // make it look clickable
+      th.style.cursor = 'pointer';
+      // icon to show sort state
+      const icon = document.createElement('i');
+      icon.classList.add('sort-icon', 'bi');
+      if (sortColumn === col.key) {
+        // current sorted column
+        icon.classList.add(
+          sortDirection === 'asc'
+            ? 'bi-sort-alpha-down-alt'
+            : 'bi-sort-alpha-up-alt'
+        );
       } else {
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td><strong>${e.title}</strong></td>
-          <td>${e.topic}</td>
-          <td>${getStatusBadge(e.status)}</td>
-          <td>${formatDate(e.start)}</td>
-          <td>${formatDate(e.end)}</td>
-          <td>${e.location}</td>
-          <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
-          <td>${e.industry}</td>
-          <td><small>${truncate(e.desc, 50)}</small></td>
-          <td>${formatDate(e.applicationdeadline)}</td>
-          <td>${getTypePill(e.internalExternal)}</td>
-          <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-          <td><small>${truncate(e.notes, 50)}</small></td>
-        `;
+        // unsorted default icon
+        icon.classList.add('bi-sort-alpha-down');
       }
-      tr.addEventListener('dblclick', () => openEntryModalFromList(e));
-      tbody.appendChild(tr);
+      th.appendChild(icon);
+
+      // when clicked: update sort state & rerender
+      th.addEventListener('click', () => {
+        if (sortColumn === col.key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortColumn    = col.key;
+          sortDirection = 'asc';
+        }
+        renderList();
+      });
+    }
+
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+
+  // 3) Sort a copy of entries if needed
+  let entriesToShow = [...window.entries];
+  if (sortColumn) {
+    entriesToShow.sort((a, b) => {
+      let va = a[sortColumn] ?? '';
+      let vb = b[sortColumn] ?? '';
+
+      // if date‐type columns, compare as Date objects
+      if (['start','end','applicationdeadline'].includes(sortColumn)) {
+        va = va ? new Date(va) : new Date(0);
+        vb = vb ? new Date(vb) : new Date(0);
+      } else {
+        // string compare, case‐insensitive
+        va = va.toString().toLowerCase();
+        vb = vb.toString().toLowerCase();
+      }
+
+      if (va > vb) return sortDirection === 'asc' ?  1 : -1;
+      if (va < vb) return sortDirection === 'asc' ? -1 :  1;
+      return 0;
     });
   }
+
+  // 4) Render rows (or empty state)
+  tbody.innerHTML = '';
+  if (!entriesToShow.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${columns.length}" class="empty-state">
+          <i class="bi bi-calendar-x"></i>
+          <p>No conferences scheduled yet.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  entriesToShow.forEach((e, idx) => {
+    const tr = document.createElement('tr');
+    if (isCollapsedMode) {
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td><strong>${e.title}</strong></td>
+        <td>${getStatusBadge(e.status)}</td>
+        <td>${formatDate(e.start)}</td>
+        <td>${formatDate(e.end)}</td>
+        <td>${e.location}</td>
+        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td><strong>${e.title}</strong></td>
+        <td>${e.topic}</td>
+        <td>${getStatusBadge(e.status)}</td>
+        <td>${formatDate(e.start)}</td>
+        <td>${formatDate(e.end)}</td>
+        <td>${e.location}</td>
+        <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+        <td>${e.industry}</td>
+        <td><small>${truncate(e.desc,50)}</small></td>
+        <td>${formatDate(e.applicationdeadline)}</td>
+        <td>${getTypePill(e.internalExternal)}</td>
+        <td>${e.AssignedEmployee||'<em>Unassigned</em>'}</td>
+        <td><small>${truncate(e.notes,50)}</small></td>
+      `;
+    }
+    tr.addEventListener('dblclick', () => openEntryModalFromList(e));
+    tbody.appendChild(tr);
+  });
+}
+
 
   function applyFilters() {
     const selectedSpeaker = document.getElementById('employee-filter').value;
