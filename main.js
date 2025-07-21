@@ -34,24 +34,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggle.textContent = isCollapsedMode ? 'Expanded View' : 'Collapsed View';
     renderList();
   });
-function openEditModal(entry) {
-  document.getElementById('edit-entry-id').value            = entry.id;
-  document.getElementById('edit-title').value               = entry.title;
-  document.getElementById('edit-topic').value               = entry.topic;
-  document.getElementById('edit-status').value              = entry.status;
-  document.getElementById('edit-start').value               = formatDateOnly(entry.start);
-  document.getElementById('edit-end').value                 = formatDateOnly(entry.end);
-  document.getElementById('edit-location').value            = entry.location;
-  document.getElementById('edit-link').value                = entry.link;
-  document.getElementById('edit-industry').value            = entry.industry;
-  document.getElementById('edit-desc').value                = entry.desc;
-  document.getElementById('edit-applicationdeadline').value = formatDateOnly(entry.applicationdeadline);
-  document.getElementById('edit-type').value                = entry.internalExternal;
-  document.getElementById('edit-AssignedEmployee').value    = entry.AssignedEmployee;
-  document.getElementById('edit-notes').value               = entry.notes;
 
-  new bootstrap.Modal(document.getElementById('editEntryModal')).show();
-}
+  function clearEditForm() {
+    document.getElementById('edit-entry-id').value = '';
+    document.getElementById('edit-title').value = '';
+    document.getElementById('edit-topic').value = '';
+    document.getElementById('edit-status').value = 'Pending';
+    document.getElementById('edit-start').value = '';
+    document.getElementById('edit-end').value = '';
+    document.getElementById('edit-location').value = '';
+    document.getElementById('edit-link').value = '';
+    document.getElementById('edit-industry').value = '';
+    document.getElementById('edit-desc').value = '';
+    document.getElementById('edit-applicationdeadline').value = '';
+    document.getElementById('edit-type').value = 'Internal';
+    document.getElementById('edit-AssignedEmployee').value = '';
+    document.getElementById('edit-notes').value = '';
+  }
+
+  function openEditModal(entry) {
+    document.getElementById('edit-entry-id').value            = entry.id;
+    document.getElementById('edit-title').value               = entry.title;
+    document.getElementById('edit-topic').value               = entry.topic;
+    document.getElementById('edit-status').value              = entry.status;
+    document.getElementById('edit-start').value               = formatDateOnly(entry.start);
+    document.getElementById('edit-end').value                 = formatDateOnly(entry.end);
+    document.getElementById('edit-location').value            = entry.location;
+    document.getElementById('edit-link').value                = entry.link;
+    document.getElementById('edit-industry').value            = entry.industry;
+    document.getElementById('edit-desc').value                = entry.desc;
+    document.getElementById('edit-applicationdeadline').value = formatDateOnly(entry.applicationdeadline);
+    document.getElementById('edit-type').value                = entry.internalExternal;
+    document.getElementById('edit-AssignedEmployee').value    = entry.AssignedEmployee;
+    document.getElementById('edit-notes').value               = entry.notes;
+
+    new bootstrap.Modal(document.getElementById('editEntryModal')).show();
+  }
+
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
   async function signIn() {
@@ -179,6 +198,24 @@ function openEditModal(entry) {
     } catch (err) {
       console.error('updateEntry failed:', err);
       alert(`Error updating entry:\n${err.message}`);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function deleteEntry(entryId) {
+    showLoading();
+    try {
+      const token = await getToken(['Sites.ReadWrite.All']);
+      const g     = client(token);
+      const sid   = await getSiteId(g);
+      await g
+        .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entryId}`)
+        .delete();
+      await fetchEntries();
+    } catch (err) {
+      console.error('deleteEntry failed:', err);
+      alert('Error deleting entry: ' + err.message);
     } finally {
       hideLoading();
     }
@@ -447,346 +484,254 @@ function openEditModal(entry) {
       events: filteredEvents,
       eventClick(info) {
         const { title, start, end, extendedProps, id } = info.event;
-        const modal = getOrCreateEventModal();
-
-        document.getElementById('eventModalBody').innerHTML = `
-          <p><strong>Title:</strong>    ${title}</p>
-          <p><strong>Status:</strong>   ${getStatusBadge(extendedProps.status)}</p>
-          <p><strong>Start:</strong>    ${formatDate(start)}</p>
-          <p><strong>End:</strong>      ${formatDate(end)}</p>
-          <p><strong>Location:</strong> ${extendedProps.location || 'N/A'}</p>
-          <p><strong>Speaker:</strong>  ${extendedProps.speaker || '<em>Unassigned</em>'}</p>
-        `;
-
-        modal.querySelector('#editEventBtn').onclick = () => {
-  const entry = window.entries.find(e => e.id == id);
-  if (entry) openEditModal(entry);
-};
-        modal.querySelector('#deleteEventBtn').onclick = async () => {
-          if (!confirm(`Delete "${title}"?`)) return;
-          bootstrap.Modal.getInstance(modal).hide();
-          showLoading();
-          try {
-            const token = await getToken(['Sites.ReadWrite.All']);
-            const g     = client(token);
-            const sid   = await getSiteId(g);
-            await g
-              .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${id}`)
-              .delete();
-            await fetchEntries();
-          } catch (err) {
-            console.error('deleteEntry failed:', err);
-            alert('Error deleting entry: ' + err.message);
-          } finally {
-            hideLoading();
-          }
-        };
-
-        modal.dataset.entryId    = id;
-        modal.dataset.eventData  = JSON.stringify({
-          title,
-          status: extendedProps.status,
-          start,
-          end,
-          location: extendedProps.location,
-          speaker:  extendedProps.speaker
-        });
-
-        new bootstrap.Modal(modal).show();
+        const entry = window.entries.find(e => e.id == id);
+        if (entry) {
+          openViewModal(entry);
+        }
       }
     });
 
     calendar.render();
   }
 
-  // === UPDATED createEventModal with footer Edit/Delete buttons ===
-  function createEventModal() {
+  // Create a unified view modal system
+  function createViewModal() {
     const modal = document.createElement('div');
     modal.className = 'modal fade';
-    modal.id        = 'eventModal';
+    modal.id        = 'viewModal';
 
     modal.innerHTML = `
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <button type="button"
-                  class="btn btn-sm btn-light border toggle-fullscreen"
-                  title="Toggle Fullscreen">
-            <i class="bi bi-arrows-fullscreen"></i>
-          </button>
-          <div id="eventModalBody"></div>
+          <div class="modal-header">
+            <h5 class="modal-title">Conference Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="viewModalBody">
+            <!-- Content will be inserted here -->
+          </div>
           <div class="modal-footer">
-            <button id="editEventBtn"   class="btn btn-primary">Edit</button>
-            <button id="deleteEventBtn" class="btn btn-danger">Delete</button>
+            <button id="viewEditBtn" class="btn btn-primary">Edit</button>
+            <button id="viewDeleteBtn" class="btn btn-danger">Delete</button>
           </div>
         </div>
       </div>
     `;
 
-    // Toggle between minimal and full details
-    modal
-      .querySelector('.toggle-fullscreen')
-      .addEventListener('click', () => {
-        const dialog = modal.querySelector('.modal-dialog');
-        const full   = dialog.classList.toggle('modal-fullscreen-custom');
-        const data   = modal.dataset.eventData && JSON.parse(modal.dataset.eventData);
-
-        if (!data) return;
-
-        if (full) {
-          const entry = window.entries.find(e => String(e.id) === modal.dataset.entryId);
-          if (!entry) return;
-          document.getElementById('eventModalBody').innerHTML = `
-            <p><strong>Title:</strong>       ${entry.title}</p>
-            <p><strong>Status:</strong>      ${getStatusBadge(entry.status)}</p>
-            <p><strong>Start:</strong>       ${formatDate(entry.start)}</p>
-            <p><strong>End:</strong>         ${formatDate(entry.end)}</p>
-            <p><strong>Location:</strong>    ${entry.location}</p>
-            <p><strong>Speaker:</strong>     ${entry.AssignedEmployee || '<em>Unassigned</em>'}</p>
-            <p><strong>Topic:</strong>       ${entry.topic}</p>
-            <p><strong>Industry:</strong>    ${entry.industry}</p>
-            <p><strong>Type:</strong>        ${getTypePill(entry.internalExternal)}</p>
-            <p><strong>Deadline:</strong>    ${formatDate(entry.applicationdeadline)}</p>
-            <p><strong>Description:</strong> ${entry.desc}</p>
-            <p><strong>Notes:</strong>       ${entry.notes}</p>
-            <p><strong>Link:</strong>        ${
-              entry.link
-                ? `<a href="${entry.link}" target="_blank">${entry.link}</a>`
-                : 'N/A'
-            }</p>
-          `;
-        } else {
-          document.getElementById('eventModalBody').innerHTML = `
-            <p><strong>Title:</strong>    ${data.title}</p>
-            <p><strong>Status:</strong>   ${getStatusBadge(data.status)}</p>
-            <p><strong>Start:</strong>    ${formatDate(data.start)}</p>
-            <p><strong>End:</strong>      ${formatDate(data.end)}</p>
-            <p><strong>Location:</strong> ${data.location}</p>
-            <p><strong>Speaker:</strong>  ${data.speaker}</p>
-          `;
-        }
-      });
-
     return modal;
   }
 
-  function getOrCreateEventModal() {
-    let modal = document.getElementById('eventModal');
+  function getOrCreateViewModal() {
+    let modal = document.getElementById('viewModal');
     if (!modal) {
-      modal = createEventModal();
+      modal = createViewModal();
       document.body.appendChild(modal);
     }
     return modal;
   }
 
-  function editEntryFromCalendar(entryId) {
-    const modalEl = document.getElementById('eventModal');
-    const bsModal = bootstrap.Modal.getInstance(modalEl);
-    if (bsModal) bsModal.hide();
-
-    document.getElementById('list-view-btn').click();
-
-    setTimeout(() => {
-      document.querySelectorAll('#entries-tbody tr').forEach(row => {
-        const btn = row.querySelector('.edit-entry');
-        if (btn && btn.dataset.id === String(entryId)) {
-          btn.click();
-        }
-      });
-    }, 200);
-  }
-
-  async function openEntryModalFromList(entry) {
-    const modal = getOrCreateEventModal();
-
-    modal.querySelector('#eventModalBody').innerHTML = `
-      <p><strong>Title:</strong>       ${entry.title}</p>
-      <p><strong>Topic:</strong>       ${entry.topic}</p>
-      <p><strong>Status:</strong>      ${getStatusBadge(entry.status)}</p>
-      <p><strong>Start:</strong>       ${formatDate(entry.start)}</p>
-      <p><strong>End:</strong>         ${formatDate(entry.end)}</p>
-      <p><strong>Location:</strong>    ${entry.location}</p>
-      <p><strong>Speaker:</strong>     ${entry.AssignedEmployee || '<em>Unassigned</em>'}</p>
-      <p><strong>Industry:</strong>    ${entry.industry}</p>
-      <p><strong>Type:</strong>        ${getTypePill(entry.internalExternal)}</p>
-      <p><strong>Deadline:</strong>    ${formatDate(entry.applicationdeadline)}</p>
-      <p><strong>Description:</strong> ${entry.desc}</p>
-      <p><strong>Notes:</strong>       ${entry.notes}</p>
-      <p><strong>Link:</strong>        ${
-        entry.link
-          ? `<a href="${entry.link}" target="_blank">${entry.link}</a>`
-          : 'N/A'
-      }</p>
+  function openViewModal(entry) {
+    const modal = getOrCreateViewModal();
+    const modalBody = modal.querySelector('#viewModalBody');
+    
+    // Always show full details in view modal
+    modalBody.innerHTML = `
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Title:</strong> ${entry.title || 'N/A'}</p>
+          <p><strong>Topic:</strong> ${entry.topic || 'N/A'}</p>
+          <p><strong>Status:</strong> ${getStatusBadge(entry.status)}</p>
+          <p><strong>Start Date:</strong> ${formatDate(entry.start)}</p>
+          <p><strong>End Date:</strong> ${formatDate(entry.end)}</p>
+          <p><strong>Location:</strong> ${entry.location || 'N/A'}</p>
+          <p><strong>Speaker:</strong> ${entry.AssignedEmployee || '<em>Unassigned</em>'}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Industry:</strong> ${entry.industry || 'N/A'}</p>
+          <p><strong>Type:</strong> ${getTypePill(entry.internalExternal)}</p>
+          <p><strong>Application Deadline:</strong> ${formatDate(entry.applicationdeadline)}</p>
+          <p><strong>Link:</strong> ${
+            entry.link
+              ? `<a href="${entry.link}" target="_blank">${entry.link}</a>`
+              : 'N/A'
+          }</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <p><strong>Description:</strong></p>
+          <p class="text-muted">${entry.desc || 'No description provided.'}</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <p><strong>Notes:</strong></p>
+          <p class="text-muted">${entry.notes || 'No notes provided.'}</p>
+        </div>
+      </div>
     `;
 
-    modal.dataset.entryId = entry.id;
-    modal.querySelector('#editEventBtn').onclick   = () => openEditModal(entry);
-    modal.querySelector('#deleteEventBtn').onclick = async () => {
+    // Set up button handlers
+    modal.querySelector('#viewEditBtn').onclick = () => {
+      // Close the view modal first
+      bootstrap.Modal.getInstance(modal).hide();
+      // Then open edit modal
+      setTimeout(() => openEditModal(entry), 300);
+    };
+    
+    modal.querySelector('#viewDeleteBtn').onclick = async () => {
       if (!confirm(`Delete "${entry.title}"?`)) return;
       bootstrap.Modal.getInstance(modal).hide();
-      showLoading();
-      try {
-        const token = await getToken(['Sites.ReadWrite.All']);
-        const g     = client(token);
-        const sid   = await getSiteId(g);
-        await g
-          .api(`/sites/${sid}/lists/${SCHED_LIST_ID}/items/${entry.id}`)
-          .delete();
-        await fetchEntries();
-      } catch (err) {
-        console.error(err);
-        alert('Error deleting entry: ' + err.message);
-      } finally {
-        hideLoading();
-      }
+      await deleteEntry(entry.id);
     };
 
+    // Show the modal
     new bootstrap.Modal(modal).show();
   }
 
   function renderList() {
-  const tbody = document.getElementById('entries-tbody');
-  const thead = document.getElementById('entries-thead');
-  thead.innerHTML = '';
+    const tbody = document.getElementById('entries-tbody');
+    const thead = document.getElementById('entries-thead');
+    thead.innerHTML = '';
 
-  // 1) Define which columns to show (and their object-keys)
-  const columns = isCollapsedMode
-    ? [
-        { label: '#',      key: null,               width: '50' },
-        { label: 'Title',  key: 'title'                },
-        { label: 'Status', key: 'status'               },
-        { label: 'Start',  key: 'start'                },
-        { label: 'End',    key: 'end'                  },
-        { label: 'Location', key: 'location'           },
-        { label: 'Speaker',  key: 'AssignedEmployee'   }
-      ]
-    : [
-        { label: '#',               key: null,               width: '50' },
-        { label: 'Title',           key: 'title'                },
-        { label: 'Topic',           key: 'topic'                },
-        { label: 'Status',          key: 'status'               },
-        { label: 'Start',           key: 'start'                },
-        { label: 'End',             key: 'end'                  },
-        { label: 'Location',        key: 'location'             },
-        { label: 'Link',            key: 'link'                 },
-        { label: 'Industry',        key: 'industry'             },
-        { label: 'Description',     key: 'desc'                 },
-        { label: 'Deadline',        key: 'applicationdeadline'  },
-        { label: 'Internal/External', key: 'internalExternal'  },
-        { label: 'Speaker',         key: 'AssignedEmployee'     },
-        { label: 'Notes',           key: 'notes'                }
-      ];
+    // 1) Define which columns to show (and their object-keys)
+    const columns = isCollapsedMode
+      ? [
+          { label: '#',      key: null,               width: '50' },
+          { label: 'Title',  key: 'title'                },
+          { label: 'Status', key: 'status'               },
+          { label: 'Start',  key: 'start'                },
+          { label: 'End',    key: 'end'                  },
+          { label: 'Location', key: 'location'           },
+          { label: 'Speaker',  key: 'AssignedEmployee'   }
+        ]
+      : [
+          { label: '#',               key: null,               width: '50' },
+          { label: 'Title',           key: 'title'                },
+          { label: 'Topic',           key: 'topic'                },
+          { label: 'Status',          key: 'status'               },
+          { label: 'Start',           key: 'start'                },
+          { label: 'End',             key: 'end'                  },
+          { label: 'Location',        key: 'location'             },
+          { label: 'Link',            key: 'link'                 },
+          { label: 'Industry',        key: 'industry'             },
+          { label: 'Description',     key: 'desc'                 },
+          { label: 'Deadline',        key: 'applicationdeadline'  },
+          { label: 'Internal/External', key: 'internalExternal'  },
+          { label: 'Speaker',         key: 'AssignedEmployee'     },
+          { label: 'Notes',           key: 'notes'                }
+        ];
 
-  // 2) Build the <thead> row with clickable <th>s
-  const headRow = document.createElement('tr');
-  columns.forEach(col => {
-    const th = document.createElement('th');
-    if (col.width) th.setAttribute('width', col.width);
+    // 2) Build the <thead> row with clickable <th>s
+    const headRow = document.createElement('tr');
+    columns.forEach(col => {
+      const th = document.createElement('th');
+      if (col.width) th.setAttribute('width', col.width);
 
-    // always show the label
-    th.appendChild(document.createTextNode(col.label + ' '));
+      // always show the label
+      th.appendChild(document.createTextNode(col.label + ' '));
 
-    if (col.key) {
-      // existing sort behavior for all other columns
-      th.style.cursor = 'pointer';
-      const icon = document.createElement('i');
-      icon.classList.add('sort-icon', 'bi');
-      if (sortColumn === col.key) {
-        icon.classList.add(
-          sortDirection === 'asc'
-            ? 'bi-sort-alpha-down-alt'
-            : 'bi-sort-alpha-up-alt'
-        );
-      } else {
-        icon.classList.add('bi-sort-alpha-down');
-      }
-      th.appendChild(icon);
-      th.addEventListener('click', () => {
+      if (col.key) {
+        // existing sort behavior for all other columns
+        th.style.cursor = 'pointer';
+        const icon = document.createElement('i');
+        icon.classList.add('sort-icon', 'bi');
         if (sortColumn === col.key) {
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          icon.classList.add(
+            sortDirection === 'asc'
+              ? 'bi-sort-alpha-down-alt'
+              : 'bi-sort-alpha-up-alt'
+          );
         } else {
-          sortColumn    = col.key;
-          sortDirection = 'asc';
+          icon.classList.add('bi-sort-alpha-down');
         }
-        renderList();
+        th.appendChild(icon);
+        th.addEventListener('click', () => {
+          if (sortColumn === col.key) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortColumn    = col.key;
+            sortDirection = 'asc';
+          }
+          renderList();
+        });
+      }
+
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+
+    // 3) Sort a copy of entries if needed
+    let entriesToShow = [...window.entries];
+    if (sortColumn) {
+      entriesToShow.sort((a, b) => {
+        let va = a[sortColumn] ?? '';
+        let vb = b[sortColumn] ?? '';
+
+        // if date‐type columns, compare as Date objects
+        if (['start','end','applicationdeadline'].includes(sortColumn)) {
+          va = va ? new Date(va) : new Date(0);
+          vb = vb ? new Date(vb) : new Date(0);
+        } else {
+          // string compare, case‐insensitive
+          va = va.toString().toLowerCase();
+          vb = vb.toString().toLowerCase();
+        }
+
+        if (va > vb) return sortDirection === 'asc' ?  1 : -1;
+        if (va < vb) return sortDirection === 'asc' ? -1 :  1;
+        return 0;
       });
     }
 
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
+    // 4) Render rows (or empty state)
+    tbody.innerHTML = '';
+    if (!entriesToShow.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="${columns.length}" class="empty-state">
+            <i class="bi bi-calendar-x"></i>
+            <p>No conferences scheduled yet.</p>
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
-  // 3) Sort a copy of entries if needed
-  let entriesToShow = [...window.entries];
-  if (sortColumn) {
-    entriesToShow.sort((a, b) => {
-      let va = a[sortColumn] ?? '';
-      let vb = b[sortColumn] ?? '';
-
-      // if date‐type columns, compare as Date objects
-      if (['start','end','applicationdeadline'].includes(sortColumn)) {
-        va = va ? new Date(va) : new Date(0);
-        vb = vb ? new Date(vb) : new Date(0);
+    entriesToShow.forEach((e, idx) => {
+      const tr = document.createElement('tr');
+      if (isCollapsedMode) {
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td><strong>${e.title}</strong></td>
+          <td>${getStatusBadge(e.status)}</td>
+          <td>${formatDate(e.start)}</td>
+          <td>${formatDate(e.end)}</td>
+          <td>${e.location}</td>
+          <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
+        `;
       } else {
-        // string compare, case‐insensitive
-        va = va.toString().toLowerCase();
-        vb = vb.toString().toLowerCase();
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td><strong>${e.title}</strong></td>
+          <td>${e.topic}</td>
+          <td>${getStatusBadge(e.status)}</td>
+          <td>${formatDate(e.start)}</td>
+          <td>${formatDate(e.end)}</td>
+          <td>${e.location}</td>
+          <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+          <td>${e.industry}</td>
+          <td><small>${truncate(e.desc,50)}</small></td>
+          <td>${formatDate(e.applicationdeadline)}</td>
+          <td>${getTypePill(e.internalExternal)}</td>
+          <td>${e.AssignedEmployee||'<em>Unassigned</em>'}</td>
+          <td><small>${truncate(e.notes,50)}</small></td>
+        `;
       }
-
-      if (va > vb) return sortDirection === 'asc' ?  1 : -1;
-      if (va < vb) return sortDirection === 'asc' ? -1 :  1;
-      return 0;
+      tr.addEventListener('dblclick', () => openViewModal(e));
+      tbody.appendChild(tr);
     });
   }
-
-  // 4) Render rows (or empty state)
-  tbody.innerHTML = '';
-  if (!entriesToShow.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="${columns.length}" class="empty-state">
-          <i class="bi bi-calendar-x"></i>
-          <p>No conferences scheduled yet.</p>
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  entriesToShow.forEach((e, idx) => {
-    const tr = document.createElement('tr');
-    if (isCollapsedMode) {
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td><strong>${e.title}</strong></td>
-        <td>${getStatusBadge(e.status)}</td>
-        <td>${formatDate(e.start)}</td>
-        <td>${formatDate(e.end)}</td>
-        <td>${e.location}</td>
-        <td>${e.AssignedEmployee || '<em>Unassigned</em>'}</td>
-      `;
-    } else {
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td><strong>${e.title}</strong></td>
-        <td>${e.topic}</td>
-        <td>${getStatusBadge(e.status)}</td>
-        <td>${formatDate(e.start)}</td>
-        <td>${formatDate(e.end)}</td>
-        <td>${e.location}</td>
-        <td>${e.link ? `<a href="${e.link}" target="_blank"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
-        <td>${e.industry}</td>
-        <td><small>${truncate(e.desc,50)}</small></td>
-        <td>${formatDate(e.applicationdeadline)}</td>
-        <td>${getTypePill(e.internalExternal)}</td>
-        <td>${e.AssignedEmployee||'<em>Unassigned</em>'}</td>
-        <td><small>${truncate(e.notes,50)}</small></td>
-      `;
-    }
-    tr.addEventListener('dblclick', () => openEntryModalFromList(e));
-    tbody.appendChild(tr);
-  });
-}
-
 
   function applyFilters() {
     const selectedSpeaker = document.getElementById('employee-filter').value;
@@ -809,7 +754,7 @@ function openEditModal(entry) {
         const text = Array.from(row.cells).map(td => td.textContent.toLowerCase()).join(' ');
         if (!text.includes(query)) show = false;
       }
-// new internal/external filter
+      // new internal/external filter
       if (typeFilter && entry.internalExternal !== typeFilter) show = false;
       row.style.display = show ? '' : 'none';
     });
@@ -837,7 +782,7 @@ function openEditModal(entry) {
     const modalEl = document.getElementById('addEntryModal');
     bootstrap.Modal.getInstance(modalEl).hide();
   });
-document.getElementById('edit-submit-btn').addEventListener('click', updateEntry);
+  document.getElementById('edit-submit-btn').addEventListener('click', updateEntry);
   document.getElementById('employee-filter').addEventListener('change', applyFilters);
   document.getElementById('start-date-filter').addEventListener('change', applyFilters);
   document.getElementById('keyword-search').addEventListener('input', applyFilters);
