@@ -34,7 +34,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggle.textContent = isCollapsedMode ? 'Expanded View' : 'Collapsed View';
     renderList();
   });
+function openEditModal(entry) {
+  document.getElementById('edit-entry-id').value            = entry.id;
+  document.getElementById('edit-title').value               = entry.title;
+  document.getElementById('edit-topic').value               = entry.topic;
+  document.getElementById('edit-status').value              = entry.status;
+  document.getElementById('edit-start').value               = formatDateOnly(entry.start);
+  document.getElementById('edit-end').value                 = formatDateOnly(entry.end);
+  document.getElementById('edit-location').value            = entry.location;
+  document.getElementById('edit-link').value                = entry.link;
+  document.getElementById('edit-industry').value            = entry.industry;
+  document.getElementById('edit-desc').value                = entry.desc;
+  document.getElementById('edit-applicationdeadline').value = formatDateOnly(entry.applicationdeadline);
+  document.getElementById('edit-type').value                = entry.internalExternal;
+  document.getElementById('edit-AssignedEmployee').value    = entry.AssignedEmployee;
+  document.getElementById('edit-notes').value               = entry.notes;
 
+  new bootstrap.Modal(document.getElementById('editEntryModal')).show();
+}
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
   async function signIn() {
@@ -441,8 +458,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p><strong>Speaker:</strong>  ${extendedProps.speaker || '<em>Unassigned</em>'}</p>
         `;
 
-        modal.querySelector('#editEventBtn').onclick = () =>
-          editEntryFromCalendar(id);
+        modal.querySelector('#editEventBtn').onclick = () => {
+  const entry = window.entries.find(e => e.id == id);
+  if (entry) openEditModal(entry);
+};
         modal.querySelector('#deleteEventBtn').onclick = async () => {
           if (!confirm(`Delete "${title}"?`)) return;
           bootstrap.Modal.getInstance(modal).hide();
@@ -552,7 +571,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getOrCreateEventModal() {
     let modal = document.getElementById('eventModal');
-    if (!modal) modal = createEventModal();
+    if (!modal) {
+      modal = createEventModal();
+      document.body.appendChild(modal);
+    }
     return modal;
   }
 
@@ -597,7 +619,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
 
     modal.dataset.entryId = entry.id;
-    modal.querySelector('#editEventBtn').onclick   = () => editEntryFromCalendar(entry.id);
+    modal.querySelector('#editEventBtn').onclick   = () => openEditModal(entry);
     modal.querySelector('#deleteEventBtn').onclick = async () => {
       if (!confirm(`Delete "${entry.title}"?`)) return;
       bootstrap.Modal.getInstance(modal).hide();
@@ -663,21 +685,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // always show the label
     th.appendChild(document.createTextNode(col.label + ' '));
 
-    if (col.key === 'internalExternal') {
-      // remove sorting for this column; instead create a filter dropdown
-      const sel = document.createElement('select');
-      sel.id = 'internal-external-filter';
-      // keep formatting consistent: add a leading "Either" option
-      ['','Internal','External'].forEach(val => {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = val || 'Either';
-        sel.appendChild(opt);
-      });
-      // on change, re-apply filters
-      sel.addEventListener('change', applyFilters);
-      th.appendChild(sel);
-    } else if (col.key) {
+    if (col.key) {
       // existing sort behavior for all other columns
       th.style.cursor = 'pointer';
       const icon = document.createElement('i');
@@ -829,9 +837,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalEl = document.getElementById('addEntryModal');
     bootstrap.Modal.getInstance(modalEl).hide();
   });
+document.getElementById('edit-submit-btn').addEventListener('click', updateEntry);
   document.getElementById('employee-filter').addEventListener('change', applyFilters);
   document.getElementById('start-date-filter').addEventListener('change', applyFilters);
   document.getElementById('keyword-search').addEventListener('input', applyFilters);
+  document.getElementById('internal-external-filter').addEventListener('change', applyFilters);
   document.getElementById('calendar-employee-filter').addEventListener('change', renderCalendarView);
 
   calBtn.addEventListener('click', () => {
