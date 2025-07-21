@@ -571,12 +571,12 @@ function openEditModal(entry) {
 
   function getOrCreateEventModal() {
     let modal = document.getElementById('eventModal');
-    if (!modal) modal = createEventModal();
-    document.body.appendChild(modal);
-  }
+    if (!modal) {
+      modal = createEventModal();
+      document.body.appendChild(modal);
+    }
     return modal;
   }
-
   function editEntryFromCalendar(entryId) {
     const modalEl = document.getElementById('eventModal');
     const bsModal = bootstrap.Modal.getInstance(modalEl);
