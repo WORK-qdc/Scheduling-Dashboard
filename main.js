@@ -5,6 +5,14 @@ let sortDirection = 'asc';     // or 'desc'
 function showLoading() {
   document.getElementById('loading-bar').classList.add('active');
 }
+// Remove any <script> include for the SDK, and instead…
+import { Client } from "@microsoft/microsoft-graph-client";
+
+function client(token) {
+  return Client.init({
+    authProvider: done => { done(null, token); }
+  });
+}
 
 function hideLoading() {
   setTimeout(() => {
